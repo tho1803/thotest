@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Systemische Grundlagen in der Organisationsentwicklung – Schule</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f7fa;
+            color: #2d3436;
+            line-height: 1.6;
+        }
+
+        header {
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: white;
+            padding: 2.5rem 1.5rem;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 1.8rem;
+            margin-bottom: 0.5rem;
+        }
+
+        header p {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        .header-illustration {
+            display: flex;
+            justify-content: center;
+            margin-top: 1.5rem;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 1.5rem;
+        }
+
+        .intro {
+            background: white;
+            border-left: 4px solid #3498db;
+            padding: 1.2rem;
+            margin-bottom: 1.5rem;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .intro p {
+            font-size: 0.95rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 1.3rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        }
+
+        .card h2 {
+            font-size: 1.1rem;
+            margin-bottom: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card h2 .icon {
+            font-size: 1.4rem;
+        }
+
+        .card ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .card ul li {
+            padding: 0.4rem 0;
+            padding-left: 1.2rem;
+            position: relative;
+            font-size: 0.9rem;
+        }
+
+        .card ul li::before {
+            content: "\25B8";
+            position: absolute;
+            left: 0;
+            color: #3498db;
+            font-weight: bold;
+        }
+
+        .card-luhmann {
+            border-top: 3px solid #e74c3c;
+        }
+
+        .card-paedagogik {
+            border-top: 3px solid #27ae60;
+        }
+
+        .card-verbindung {
+            border-top: 3px solid #f39c12;
+        }
+
+        .card-praxis {
+            border-top: 3px solid #8e44ad;
+        }
+
+        .card-begriffe {
+            border-top: 3px solid #3498db;
+        }
+
+        .card-grund {
+            border-top: 3px solid #16a085;
+        }
+
+        .card-referenz {
+            border-top: 3px solid #e67e22;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .praxis-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .praxis-box {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .praxis-box h3 {
+            font-size: 0.95rem;
+            color: #8e44ad;
+            margin-bottom: 0.5rem;
+        }
+
+        .praxis-box p {
+            font-size: 0.85rem;
+        }
+
+        .hinweis {
+            background: #fff9e6;
+            border: 1px solid #f0d060;
+            border-radius: 8px;
+            padding: 1rem 1.3rem;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+        }
+
+        .hinweis strong {
+            color: #d4a017;
+        }
+
+        .begriffe {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .begriff {
+            background: #eaf2f8;
+            color: #2c3e50;
+            padding: 0.3rem 0.7rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+
+        /* Illustration Styles */
+        .illustration {
+            display: flex;
+            justify-content: center;
+            margin: 1rem 0;
+        }
+
+        .illustration svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .card-with-illustration {
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 1.5rem;
+            align-items: center;
+        }
+
+        .card-with-illustration .card-text {
+            flex: 1;
+        }
+
+        .card-with-illustration .card-illustration {
+            flex-shrink: 0;
+        }
+
+        /* Referenzrahmen Grafik */
+        .referenz-visual {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1rem;
+            align-items: center;
+            margin-top: 1rem;
+        }
+
+        .referenz-box {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        .referenz-box h4 {
+            font-size: 0.9rem;
+            margin-bottom: 0.4rem;
+        }
+
+        .referenz-box.lehrkraft {
+            border: 2px solid #3498db;
+        }
+
+        .referenz-box.kind {
+            border: 2px solid #e74c3c;
+        }
+
+        .referenz-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Guter Grund Beispiel */
+        .beispiel-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .beispiel-box {
+            background: #f0faf6;
+            border-radius: 10px;
+            padding: 1rem;
+            text-align: center;
+            border: 1px solid #b2dfdb;
+        }
+
+        .beispiel-box .situation {
+            font-weight: 600;
+            color: #e74c3c;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .beispiel-box .grund {
+            font-size: 0.8rem;
+            color: #16a085;
+            font-style: italic;
+        }
+
+        .beispiel-box .grund::before {
+            content: "\2192 ";
+        }
+
+        .beispiel-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            .grid, .praxis-grid, .beispiel-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .card-with-illustration {
+                grid-template-columns: 1fr;
+            }
+
+            .referenz-visual {
+                grid-template-columns: 1fr;
+            }
+
+            .referenz-arrow svg {
+                transform: rotate(90deg);
+            }
+
+            header h1 {
+                font-size: 1.4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Systemische Grundlagen in der Schulentwicklung</h1>
+    <p>Luhmanns Systemtheorie trifft Pädagogik — Ein Onepager für Pädagoginnen an Grund- und Mittelschulen</p>
+    <div class="header-illustration">
+        <svg width="400" height="120" viewBox="0 0 400 120" role="img" aria-label="Illustration: Vernetzte Systeme Schule, Familie, Kind">
+            <!-- Kind (Mitte) -->
+            <circle cx="200" cy="60" r="28" fill="#fff" stroke="#3498db" stroke-width="2.5"/>
+            <text x="200" y="56" text-anchor="middle" font-size="11" fill="#2c3e50" font-weight="600">Kind</text>
+            <text x="200" y="70" text-anchor="middle" font-size="9" fill="#7f8c8d">im Zentrum</text>
+            <!-- Schule (Links) -->
+            <circle cx="60" cy="60" r="35" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+            <text x="60" y="57" text-anchor="middle" font-size="12" fill="white" font-weight="600">Schule</text>
+            <text x="60" y="72" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)">System</text>
+            <!-- Familie (Rechts) -->
+            <circle cx="340" cy="60" r="35" fill="rgba(255,255,255,0.15)" stroke="rgba(255,255,255,0.6)" stroke-width="2"/>
+            <text x="340" y="57" text-anchor="middle" font-size="12" fill="white" font-weight="600">Familie</text>
+            <text x="340" y="72" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.8)">System</text>
+            <!-- Peers (Oben) -->
+            <circle cx="200" cy="10" r="20" fill="rgba(255,255,255,0.1)" stroke="rgba(255,255,255,0.5)" stroke-width="1.5"/>
+            <text x="200" y="14" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.9)">Peers</text>
+            <!-- Verbindungslinien -->
+            <line x1="95" y1="60" x2="172" y2="60" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <line x1="228" y1="60" x2="305" y2="60" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <line x1="200" y1="32" x2="200" y2="30" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-dasharray="5,3"/>
+            <!-- Kleine Pfeile -->
+            <polygon points="170,56 170,64 160,60" fill="rgba(255,255,255,0.5)"/>
+            <polygon points="230,56 230,64 240,60" fill="rgba(255,255,255,0.5)"/>
+        </svg>
+    </div>
+</header>
+
+<div class="container">
+
+    <div class="intro">
+        <p>
+            Schule ist mehr als Unterricht — sie ist ein <strong>soziales System</strong>, in dem Kommunikation, Beziehungen und Strukturen das Lernen formen.
+            Systemisches Denken nach Niklas Luhmann hilft Pädagoginnen, die Dynamiken im Klassenzimmer und im Kollegium besser zu verstehen
+            und pädagogisches Handeln wirksamer zu gestalten.
+        </p>
+    </div>
+
+    <div class="grid">
+
+        <div class="card card-luhmann">
+            <h2><span class="icon" role="img" aria-label="Kreislauf">&#x1F504;</span> Systemtheorie nach Luhmann</h2>
+            <div class="illustration">
+                <svg width="220" height="140" viewBox="0 0 220 140" role="img" aria-label="Zirkuläres System: Kommunikation, Verstehen, Anschluss">
+                    <!-- Kreislauf -->
+                    <path d="M110,20 A60,50 0 1,1 109,20" fill="none" stroke="#e74c3c" stroke-width="2" stroke-dasharray="4,2"/>
+                    <!-- Knoten -->
+                    <circle cx="110" cy="20" r="16" fill="#fde8e8" stroke="#e74c3c" stroke-width="1.5"/>
+                    <text x="110" y="24" text-anchor="middle" font-size="7" fill="#c0392b">Mitteilung</text>
+                    <circle cx="50" cy="90" r="16" fill="#fde8e8" stroke="#e74c3c" stroke-width="1.5"/>
+                    <text x="50" y="94" text-anchor="middle" font-size="7" fill="#c0392b">Verstehen</text>
+                    <circle cx="170" cy="90" r="16" fill="#fde8e8" stroke="#e74c3c" stroke-width="1.5"/>
+                    <text x="170" y="94" text-anchor="middle" font-size="7" fill="#c0392b">Anschluss</text>
+                    <!-- Pfeile -->
+                    <polygon points="72,78 78,85 72,88" fill="#e74c3c"/>
+                    <polygon points="148,88 154,85 148,78" fill="#e74c3c"/>
+                    <polygon points="107,38 110,44 113,38" fill="#e74c3c"/>
+                    <!-- Label -->
+                    <text x="110" y="135" text-anchor="middle" font-size="9" fill="#999">Kommunikation als Kreislauf</text>
+                </svg>
+            </div>
+            <ul>
+                <li><strong>Autopoiese:</strong> Systeme (Klasse, Schule, Familie) organisieren und erhalten sich selbst. Veränderung kann nur angeregt, nicht erzwungen werden.</li>
+                <li><strong>Kommunikation als Grundelement:</strong> Soziale Systeme bestehen aus Kommunikation, nicht aus Menschen. Entscheidend ist, was verstanden wird — nicht was gesagt wird.</li>
+                <li><strong>Beobachtung 2. Ordnung:</strong> Nicht nur beobachten, was Kinder tun, sondern <em>wie sie beobachten</em> — ihre Perspektive auf die Situation verstehen.</li>
+                <li><strong>System/Umwelt-Differenz:</strong> Jedes Kind bringt sein eigenes System (Familie, Peers) mit. Die Schule ist Umwelt für das Kind — und umgekehrt.</li>
+                <li><strong>Strukturelle Kopplung:</strong> Systeme beeinflussen sich gegenseitig, ohne sich zu steuern. Schule und Familie sind gekoppelt, aber nicht direkt steuerbar.</li>
+            </ul>
+        </div>
+
+        <div class="card card-paedagogik">
+            <h2><span class="icon" role="img" aria-label="Bücher">&#x1F4DA;</span> Pädagogische Grundsätze</h2>
+            <div class="illustration">
+                <svg width="220" height="140" viewBox="0 0 220 140" role="img" aria-label="Pädagogische Säulen">
+                    <!-- Fundament -->
+                    <rect x="15" y="115" width="190" height="16" rx="3" fill="#27ae60" opacity="0.2"/>
+                    <text x="110" y="127" text-anchor="middle" font-size="8" fill="#27ae60" font-weight="600">Beziehung als Fundament</text>
+                    <!-- Säulen -->
+                    <rect x="22" y="35" width="30" height="80" rx="3" fill="#e8f8f0" stroke="#27ae60" stroke-width="1.5"/>
+                    <text x="37" y="80" text-anchor="middle" font-size="7" fill="#1e8449" transform="rotate(-90,37,80)">Ganzheitlichkeit</text>
+                    <rect x="60" y="35" width="30" height="80" rx="3" fill="#e8f8f0" stroke="#27ae60" stroke-width="1.5"/>
+                    <text x="75" y="80" text-anchor="middle" font-size="7" fill="#1e8449" transform="rotate(-90,75,80)">Ressourcen</text>
+                    <rect x="98" y="35" width="30" height="80" rx="3" fill="#e8f8f0" stroke="#27ae60" stroke-width="1.5"/>
+                    <text x="113" y="80" text-anchor="middle" font-size="7" fill="#1e8449" transform="rotate(-90,113,80)">Partizipation</text>
+                    <rect x="136" y="35" width="30" height="80" rx="3" fill="#e8f8f0" stroke="#27ae60" stroke-width="1.5"/>
+                    <text x="151" y="80" text-anchor="middle" font-size="7" fill="#1e8449" transform="rotate(-90,151,80)">Individualisierung</text>
+                    <rect x="174" y="35" width="30" height="80" rx="3" fill="#e8f8f0" stroke="#27ae60" stroke-width="1.5"/>
+                    <text x="189" y="80" text-anchor="middle" font-size="7" fill="#1e8449" transform="rotate(-90,189,80)">Inklusion</text>
+                    <!-- Dach -->
+                    <polygon points="10,35 110,8 210,35" fill="none" stroke="#27ae60" stroke-width="1.5"/>
+                    <text x="110" y="27" text-anchor="middle" font-size="8" fill="#27ae60" font-weight="600">Kind im Mittelpunkt</text>
+                </svg>
+            </div>
+            <ul>
+                <li><strong>Ganzheitlichkeit:</strong> Kinder werden als denkende, fühlende und handelnde Wesen in ihrem gesamten Kontext wahrgenommen.</li>
+                <li><strong>Beziehung vor Erziehung:</strong> Tragfähige Beziehungen sind die Grundlage für erfolgreiches Lernen und Entwicklung.</li>
+                <li><strong>Ressourcenorientierung:</strong> Der Blick richtet sich auf Stärken und Potenziale statt auf Defizite.</li>
+                <li><strong>Partizipation:</strong> Kinder werden als aktive Gestalter ihres Lernprozesses ernst genommen und beteiligt.</li>
+                <li><strong>Individualisierung:</strong> Jedes Kind hat eigene Lernwege, Tempi und Zugänge — pädagogisches Handeln passt sich an.</li>
+                <li><strong>Inklusion:</strong> Vielfalt wird als Bereicherung verstanden und im Unterricht berucksichtigt.</li>
+            </ul>
+        </div>
+
+        <!-- DER GUTE GRUND -->
+        <div class="card card-grund full-width">
+            <h2><span class="icon" role="img" aria-label="Herz">&#x1F49A;</span> Der Gute Grund — Jedes Verhalten hat einen Sinn</h2>
+            <div class="card-with-illustration">
+                <div class="card-text">
+                    <p style="font-size: 0.9rem; margin-bottom: 0.8rem;">
+                        Ein zentraler Grundsatz systemischer Pädagogik: <strong>Jedes Verhalten hat aus der Perspektive des Handelnden einen „guten Grund".</strong>
+                        Das bedeutet nicht, dass jedes Verhalten akzeptabel ist — sondern dass es eine innere Logik gibt, die es zu verstehen gilt.
+                    </p>
+                    <ul>
+                        <li><strong>Verhalten als Lösung:</strong> Was wir als „Störung" erleben, ist oft die beste Lösung, die dem Kind aktuell zur Verfügung steht. Es reagiert auf sein System mit den Mitteln, die es kennt.</li>
+                        <li><strong>Neugier statt Bewertung:</strong> Die Frage verschiebt sich von <em>„Warum stört dieses Kind?"</em> zu <em>„Wozu dient dieses Verhalten? Was versucht es damit zu losen?"</em></li>
+                        <li><strong>Würdigung vor Veränderung:</strong> Erst wenn der gute Grund verstanden und anerkannt wird, konnen gemeinsam neue, sozial verträglichere Lösungen entwickelt werden.</li>
+                        <li><strong>Haltung statt Technik:</strong> Der gute Grund ist keine Methode, sondern eine <strong>pädagogische Haltung</strong> — er verandert, wie wir auf Kinder schauen und mit ihnen in Beziehung treten.</li>
+                    </ul>
+                </div>
+                <div class="card-illustration">
+                    <svg width="200" height="220" viewBox="0 0 200 220" role="img" aria-label="Eisberg-Modell: Sichtbares Verhalten und unsichtbarer guter Grund">
+                        <!-- Wasserlinie -->
+                        <line x1="10" y1="80" x2="190" y2="80" stroke="#3498db" stroke-width="1.5" stroke-dasharray="6,3"/>
+                        <text x="185" y="75" text-anchor="end" font-size="8" fill="#3498db">Oberfläche</text>
+                        <!-- Sichtbar -->
+                        <polygon points="100,15 140,78 60,78" fill="#e74c3c" opacity="0.15" stroke="#e74c3c" stroke-width="1.5"/>
+                        <text x="100" y="45" text-anchor="middle" font-size="8" fill="#c0392b" font-weight="600">Sichtbares</text>
+                        <text x="100" y="56" text-anchor="middle" font-size="8" fill="#c0392b" font-weight="600">Verhalten</text>
+                        <text x="100" y="72" text-anchor="middle" font-size="7" fill="#e74c3c">Störung, Rückzug,</text>
+                        <text x="100" y="78" text-anchor="middle" font-size="6.5" fill="#e74c3c">Aggression...</text>
+                        <!-- Unsichtbar (Eisberg unter Wasser) -->
+                        <polygon points="100,82 155,150 145,185 55,185 45,150" fill="#16a085" opacity="0.12" stroke="#16a085" stroke-width="1.5"/>
+                        <text x="100" y="108" text-anchor="middle" font-size="9" fill="#0e6655" font-weight="600">Der gute Grund</text>
+                        <text x="100" y="125" text-anchor="middle" font-size="7" fill="#16a085">Bedürfnisse</text>
+                        <text x="100" y="138" text-anchor="middle" font-size="7" fill="#16a085">Erfahrungen</text>
+                        <text x="100" y="151" text-anchor="middle" font-size="7" fill="#16a085">Ängste &amp; Hoffnungen</text>
+                        <text x="100" y="164" text-anchor="middle" font-size="7" fill="#16a085">Familiäre Muster</text>
+                        <text x="100" y="177" text-anchor="middle" font-size="7" fill="#16a085">Innere Logik</text>
+                        <!-- Label -->
+                        <text x="100" y="210" text-anchor="middle" font-size="9" fill="#999">Eisberg-Modell</text>
+                    </svg>
+                </div>
+            </div>
+            <div class="beispiel-grid">
+                <div class="beispiel-box">
+                    <div class="beispiel-icon" role="img" aria-label="Megafon">&#x1F4E2;</div>
+                    <div class="situation">Kind stört ständig den Unterricht</div>
+                    <div class="grund">Braucht Zugehörigkeit und Aufmerksamkeit, weil es sich unsichtbar fühlt</div>
+                </div>
+                <div class="beispiel-box">
+                    <div class="beispiel-icon" role="img" aria-label="Stille">&#x1F910;</div>
+                    <div class="situation">Kind verweigert die Mitarbeit</div>
+                    <div class="grund">Schutzt sich vor erneutem Versagen nach wiederholten Misserfolgserlebnissen</div>
+                </div>
+                <div class="beispiel-box">
+                    <div class="beispiel-icon" role="img" aria-label="Wut">&#x1F4A5;</div>
+                    <div class="situation">Kind reagiert aggressiv auf Kritik</div>
+                    <div class="grund">Hat gelernt, dass Angriff die beste Verteidigung ist — Überlebensstrategie aus dem Familiensystem</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- EIGENER REFERENZRAHMEN -->
+        <div class="card card-referenz full-width">
+            <h2><span class="icon" role="img" aria-label="Brille">&#x1F453;</span> Der eigene Referenzrahmen — Warum Selbstreflexion entscheidend ist</h2>
+            <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+                Systemische Pädagogik beginnt nicht beim Kind — sie beginnt bei <strong>uns selbst</strong>. Nach Luhmann beobachtet jedes System
+                die Welt durch seinen eigenen Referenzrahmen. Das gilt auch für Pädagoginnen: Unsere Biografie, Werte, Normen und
+                Erfahrungen bestimmen, <em>was</em> wir sehen und <em>wie</em> wir es bewerten.
+            </p>
+
+            <div class="referenz-visual">
+                <div class="referenz-box lehrkraft">
+                    <svg width="60" height="60" viewBox="0 0 60 60" role="img" aria-label="Lehrkraft">
+                        <circle cx="30" cy="20" r="12" fill="#d6eaf8" stroke="#3498db" stroke-width="1.5"/>
+                        <path d="M12,55 Q12,35 30,35 Q48,35 48,55" fill="#d6eaf8" stroke="#3498db" stroke-width="1.5"/>
+                        <text x="30" y="24" text-anchor="middle" font-size="8" fill="#2980b9">&#x1F9D1;</text>
+                    </svg>
+                    <h4 style="color: #2980b9;">Mein Referenzrahmen</h4>
+                    <p>Eigene Schulerfahrung, Werte, pädagogische Ausbildung, kulturelle Prägung, blinde Flecken</p>
+                </div>
+                <div class="referenz-arrow">
+                    <svg width="80" height="50" viewBox="0 0 80 50" role="img" aria-label="Wechselwirkung">
+                        <line x1="5" y1="20" x2="70" y2="20" stroke="#e67e22" stroke-width="1.5"/>
+                        <polygon points="70,16 78,20 70,24" fill="#e67e22"/>
+                        <line x1="75" y1="35" x2="10" y2="35" stroke="#e67e22" stroke-width="1.5"/>
+                        <polygon points="10,31 2,35 10,39" fill="#e67e22"/>
+                        <text x="40" y="12" text-anchor="middle" font-size="7" fill="#e67e22">beobachtet</text>
+                        <text x="40" y="48" text-anchor="middle" font-size="7" fill="#e67e22">lost aus</text>
+                    </svg>
+                </div>
+                <div class="referenz-box kind">
+                    <svg width="60" height="60" viewBox="0 0 60 60" role="img" aria-label="Kind">
+                        <circle cx="30" cy="22" r="10" fill="#fdedec" stroke="#e74c3c" stroke-width="1.5"/>
+                        <path d="M16,55 Q16,38 30,38 Q44,38 44,55" fill="#fdedec" stroke="#e74c3c" stroke-width="1.5"/>
+                        <text x="30" y="26" text-anchor="middle" font-size="8" fill="#c0392b">&#x1F9D2;</text>
+                    </svg>
+                    <h4 style="color: #c0392b;">Referenzrahmen des Kindes</h4>
+                    <p>Familiäre Muster, Erfahrungen, kultureller Hintergrund, Bedürfnisse, bisherige Schulerfahrung</p>
+                </div>
+            </div>
+
+            <ul style="margin-top: 1rem;">
+                <li><strong>Beobachter-Abhängigkeit:</strong> Was ich als „Störung" wahrnehme, ist keine objektive Tatsache — es ist das Ergebnis meines Beobachtens. Ein anderer Beobachter könnte dasselbe Verhalten vollig anders einordnen.</li>
+                <li><strong>Blinde Flecken erkennen:</strong> Jeder Referenzrahmen hat blinde Flecken. Supervision, kollegiale Beratung und Selbstreflexion helfen, diese sichtbar zu machen.</li>
+                <li><strong>Werte hinterfragen:</strong> <em>„Ist meine Reaktion auf dieses Kind pädagogisch begründet — oder reagiere ich aus meiner eigenen Geschichte heraus?"</em></li>
+                <li><strong>Kulturelle Sensibilität:</strong> Gerade in heterogenen Klassen prallen unterschiedliche Referenzrahmen aufeinander. Was in einer Familie als respektvoll gilt, kann in der Schule als „unangepasst" gelesen werden.</li>
+                <li><strong>Vom Bewerten zum Beschreiben:</strong> Systemische Pädagogik ladt ein, Verhalten zunachst zu <em>beschreiben</em> statt zu <em>bewerten</em> — das öffnet den Raum für neue Lösungen.</li>
+            </ul>
+        </div>
+
+        <div class="card card-verbindung full-width">
+            <h2><span class="icon" role="img" aria-label="Verbindung">&#x1F517;</span> Wo sich Luhmann und Pädagogik treffen</h2>
+            <div class="illustration">
+                <svg width="500" height="120" viewBox="0 0 500 120" role="img" aria-label="Venn-Diagramm: Schnittmenge von Systemtheorie und Pädagogik">
+                    <!-- Luhmann Kreis -->
+                    <circle cx="180" cy="60" r="55" fill="#e74c3c" opacity="0.1" stroke="#e74c3c" stroke-width="1.5"/>
+                    <text x="140" y="45" font-size="9" fill="#c0392b" font-weight="600">Systemtheorie</text>
+                    <text x="135" y="58" font-size="7.5" fill="#e74c3c">Autopoiese</text>
+                    <text x="135" y="70" font-size="7.5" fill="#e74c3c">Kommunikation</text>
+                    <text x="135" y="82" font-size="7.5" fill="#e74c3c">Beobachtung</text>
+                    <!-- Pädagogik Kreis -->
+                    <circle cx="300" cy="60" r="55" fill="#27ae60" opacity="0.1" stroke="#27ae60" stroke-width="1.5"/>
+                    <text x="310" y="45" font-size="9" fill="#1e8449" font-weight="600">Pädagogik</text>
+                    <text x="310" y="58" font-size="7.5" fill="#27ae60">Beziehung</text>
+                    <text x="310" y="70" font-size="7.5" fill="#27ae60">Ressourcen</text>
+                    <text x="310" y="82" font-size="7.5" fill="#27ae60">Partizipation</text>
+                    <!-- Schnittmenge -->
+                    <text x="240" y="50" text-anchor="middle" font-size="8" fill="#8e44ad" font-weight="600">Schnittmenge</text>
+                    <text x="240" y="63" text-anchor="middle" font-size="7" fill="#8e44ad">Guter Grund</text>
+                    <text x="240" y="74" text-anchor="middle" font-size="7" fill="#8e44ad">Zirkularität</text>
+                    <text x="240" y="85" text-anchor="middle" font-size="7" fill="#8e44ad">Referenzrahmen</text>
+                </svg>
+            </div>
+            <div class="praxis-grid">
+                <div>
+                    <ul>
+                        <li><strong>Nicht-Triviale Maschine:</strong> Kinder sind keine trivialen Maschinen — gleicher Input führt nicht zu gleichem Output. Das bestätigt den pädagogischen Grundsatz der Individualisierung.</li>
+                        <li><strong>Kontextabhängigkeit:</strong> Verhalten ist immer kontextgebunden. Ein „störendes" Kind reagiert auf sein System. Pädagogik fragt: <em>Was braucht dieses Kind in diesem Kontext?</em></li>
+                    </ul>
+                </div>
+                <div>
+                    <ul>
+                        <li><strong>Zirkularität statt Linearität:</strong> Es gibt kein einfaches Ursache-Wirkung. Lehrkraft und Klasse beeinflussen sich wechselseitig — Beziehungsgestaltung wird zum zentralen Hebel.</li>
+                        <li><strong>Perturbation statt Instruktion:</strong> Lernen kann nicht direkt erzeugt, sondern nur angeregt werden. Das entspricht dem konstruktivistischen Verständnis moderner Pädagogik.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card card-praxis full-width">
+            <h2><span class="icon" role="img" aria-label="Werkzeuge">&#x1F6E0;&#xFE0F;</span> Systemisch-pädagogische Praxis im Schulalltag</h2>
+            <div class="praxis-grid">
+                <div class="praxis-box">
+                    <h3>Grundschule (6–10 Jahre)</h3>
+                    <p>
+                        Kinder erleben Schule als neues System. Rituale und klare Strukturen schaffen <strong>Anschlussfähigkeit</strong> (Luhmann) und geben Sicherheit (Pädagogik).
+                        Systemische Fragen wie <em>„Was würde dein bester Freund dazu sagen?"</em> fördern Perspektivwechsel und Empathie.
+                    </p>
+                </div>
+                <div class="praxis-box">
+                    <h3>Mittelschule (10–16 Jahre)</h3>
+                    <p>
+                        Peer-Systeme gewinnen an Bedeutung. Konflikte sind oft <strong>Kommunikationsprobleme</strong> im Luhmann'schen Sinne.
+                        Systemische Gesprächsführung, lösungsorientierte Ansätze und die Arbeit mit dem sozialen System der Klasse werden zentral.
+                    </p>
+                </div>
+                <div class="praxis-box">
+                    <h3>Elternarbeit</h3>
+                    <p>
+                        Familie und Schule sind strukturell gekoppelte Systeme. Systemisches Denken hilft, <strong>Erwartungskonflikte</strong> zu erkennen
+                        und Elterngesprache wertschätzend und lösungsorientiert zu fuhren — ohne Schuldzuweisungen.
+                    </p>
+                </div>
+                <div class="praxis-box">
+                    <h3>Kollegium &amp; Team</h3>
+                    <p>
+                        Auch das Kollegium ist ein soziales System. Systemische Organisationsentwicklung fragt: <em>Welche Kommunikationsmuster prägen unser Team?</em>
+                        und nutzt Reflexion und Supervision als Entwicklungswerkzeuge.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="hinweis">
+        <strong>Kerngedanke:</strong> Systemisches Denken ersetzt pädagogisches Handeln nicht — es erweitert den Blick.
+        Wer versteht, dass Schule ein lebendiges System ist, kann Interventionen gezielter setzen, Widerstände besser einordnen
+        und Veränderung als gemeinsamen Prozess gestalten. Und: <strong>Der erste Schritt ist immer die Reflexion des eigenen Referenzrahmens.</strong>
+    </div>
+
+    <div class="card card-begriffe full-width">
+        <h2><span class="icon" role="img" aria-label="Buch">&#x1F4D6;</span> Zentrale Begriffe</h2>
+        <div class="begriffe">
+            <span class="begriff">Autopoiese</span>
+            <span class="begriff">Kommunikation</span>
+            <span class="begriff">System/Umwelt</span>
+            <span class="begriff">Strukturelle Kopplung</span>
+            <span class="begriff">Beobachtung 2. Ordnung</span>
+            <span class="begriff">Zirkularität</span>
+            <span class="begriff">Perturbation</span>
+            <span class="begriff">Anschlussfähigkeit</span>
+            <span class="begriff">Ressourcenorientierung</span>
+            <span class="begriff">Nicht-Triviale Maschine</span>
+            <span class="begriff">Kontingenz</span>
+            <span class="begriff">Inklusion</span>
+            <span class="begriff">Der gute Grund</span>
+            <span class="begriff">Referenzrahmen</span>
+            <span class="begriff">Blinde Flecken</span>
+            <span class="begriff">Selbstreflexion</span>
+        </div>
+    </div>
+
+</div>
+
+<footer>
+    Systemische Grundlagen in der Schulentwicklung — Ein Onepager für Pädagoginnen | 2026
+</footer>
+
+</body>
+</html>
