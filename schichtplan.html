@@ -16,6 +16,9 @@
         --weekend:#eaf4fc;
         --blocked:#f0f2f5;
         --strike:#a9b6c3;
+        --today:#fff6e0;
+        --today-line:#e8b84b;
+        --warn:#c0392b;
         --shadow:0 2px 8px rgba(0,0,0,.08);
     }
 
@@ -56,13 +59,19 @@
         color:var(--ink);
         cursor:pointer;
         box-shadow:var(--shadow);
-        transition:background .15s,border-color .15s;
+        transition:background .15s,border-color .15s,color .15s;
     }
     .btn:hover{border-color:var(--brand);color:var(--brand-dark)}
     .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
     .btn.primary:hover{background:#2c85c0;color:#fff}
-    .btn.danger:hover{border-color:#c0392b;color:#c0392b}
     .btn.icon{padding:.3rem .5rem;font-size:.8rem;box-shadow:none}
+    .btn.armed{border-color:var(--warn);color:var(--warn);font-weight:600}
+    .btn:disabled{cursor:default}
+    .btn:focus-visible,.chip:focus-visible,.entry:focus-visible,
+    .panel>summary:focus-visible,select:focus-visible,input:focus-visible{
+        outline:2px solid var(--brand);
+        outline-offset:2px;
+    }
 
     /* ---------- Konfiguration ---------- */
     .panel{
@@ -96,6 +105,31 @@
         margin-bottom:.6rem;
     }
 
+    .scope-tabs{display:flex;flex-wrap:wrap;gap:.4rem}
+    .scope-tab{
+        font:inherit;
+        font-size:.83rem;
+        padding:.35rem .8rem;
+        border:1px solid var(--line);
+        border-radius:6px;
+        background:#fff;
+        color:var(--ink);
+        cursor:pointer;
+    }
+    .scope-tab.on{background:var(--brand-dark);border-color:var(--brand-dark);color:#fff}
+    .scope-tab .mark{color:var(--brand);margin-left:.3rem}
+    .scope-tab.on .mark{color:#8fc9ee}
+
+    .scope-note{
+        font-size:.85rem;
+        color:var(--muted);
+        margin-top:.8rem;
+        padding:.6rem .8rem;
+        background:#f8fafc;
+        border-left:3px solid var(--brand);
+        border-radius:0 5px 5px 0;
+    }
+
     .chips{display:flex;flex-wrap:wrap;gap:.4rem}
     .chip{
         font:inherit;
@@ -123,7 +157,7 @@
     .shift-editor .days{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
     .shift-editor .days .label{font-size:.75rem;color:var(--muted);margin-right:.3rem}
     .shift-editor input[type=text],
-    .shift-editor input[type=time]{
+    .shift-editor select{
         font:inherit;
         font-size:.85rem;
         padding:.35rem .5rem;
@@ -134,20 +168,46 @@
     }
     .shift-editor input[type=text]{width:100%}
     .shift-editor .tools{display:flex;gap:.3rem}
+    .shift-editor .fixed-time{
+        font-size:.85rem;
+        color:var(--brand-dark);
+        font-weight:600;
+        white-space:nowrap;
+        font-variant-numeric:tabular-nums;
+    }
+    .shift-editor .fixed-name{font-size:.85rem;color:var(--muted)}
 
-    .weeks-control{display:flex;align-items:center;gap:.6rem;font-size:.9rem}
+    .horizon{display:flex;align-items:center;gap:.6rem;font-size:.9rem;flex-wrap:wrap}
+    .horizon select{
+        font:inherit;
+        font-size:.85rem;
+        padding:.35rem .5rem;
+        border:1px solid var(--line);
+        border-radius:5px;
+        background:#fff;
+        color:var(--ink);
+    }
+    .horizon .note{color:var(--muted);font-size:.8rem}
 
     /* ---------- Plan ---------- */
     .week{margin-bottom:2rem}
-    .week-title{
-        font-size:1.05rem;
+    .week-head{
+        display:flex;
+        align-items:baseline;
+        flex-wrap:wrap;
+        gap:.6rem;
         margin-bottom:.6rem;
-        padding:.15rem .4rem;
-        border-radius:5px;
-        display:inline-block;
-        outline:none;
     }
-    .week-title:focus{background:#fff;box-shadow:0 0 0 2px var(--brand)}
+    .week-head h2{font-size:1.05rem}
+    .week-head .span{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+    .week-head .tag{
+        font-size:.7rem;
+        font-weight:600;
+        padding:.1rem .5rem;
+        border-radius:999px;
+        background:var(--weekend);
+        color:var(--brand-dark);
+    }
 
     .table-wrap{
         background:var(--card);
@@ -158,7 +218,7 @@
 
     table{
         width:100%;
-        min-width:760px;
+        min-width:680px;
         border-collapse:collapse;
         table-layout:fixed;
     }
@@ -169,12 +229,20 @@
 
     thead th{
         background:#f8fafc;
-        padding:.7rem .6rem;
+        padding:.6rem .6rem;
         font-size:.9rem;
         text-align:center;
         color:var(--brand-dark);
     }
+    thead th .date{
+        display:block;
+        font-size:.78rem;
+        font-weight:400;
+        color:var(--muted);
+        font-variant-numeric:tabular-nums;
+    }
     thead th.weekend{background:var(--weekend)}
+    thead th.today{background:var(--today);box-shadow:inset 0 -3px 0 var(--today-line)}
     thead th.corner{
         width:170px;
         text-align:left;
@@ -191,7 +259,7 @@
         background:#f8fafc;
         font-weight:600;
     }
-    th.shift .time{display:block;font-size:.95rem;color:var(--brand-dark)}
+    th.shift .time{display:block;font-size:.95rem;color:var(--brand-dark);font-variant-numeric:tabular-nums}
     th.shift .name{display:block;font-size:.8rem;font-weight:400;color:var(--muted)}
     th.shift .meta{display:block;font-size:.72rem;font-weight:400;color:var(--muted);margin-top:.25rem}
     th.shift .badge{
@@ -207,6 +275,7 @@
 
     td.cell{position:relative;vertical-align:top;padding:0;height:64px}
     td.cell.weekend{background:#fbfdff}
+    td.cell.today{background:#fffdf6}
 
     .entry{
         min-height:64px;
@@ -252,6 +321,7 @@
         border-radius:0 8px 8px 0;
         box-shadow:var(--shadow);
         font-size:.9rem;
+        margin-bottom:1.5rem;
     }
 
     .legend{
@@ -284,6 +354,10 @@
         .shift-editor input[type=text]{grid-column:1/-1}
     }
 
+    @media (prefers-reduced-motion:reduce){
+        *{transition:none!important}
+    }
+
     /* ---------- Druck ---------- */
     @page{size:A4 landscape;margin:12mm}
     @media print{
@@ -296,7 +370,7 @@
         table{min-width:0}
         th,td{border-color:#b9c4cf}
         thead th,th.shift{background:none}
-        thead th.weekend,td.cell.weekend{background:none}
+        thead th.weekend,td.cell.weekend,thead th.today,td.cell.today{background:none;box-shadow:none}
         .week{break-inside:avoid;page-break-inside:avoid;margin-bottom:1.2rem}
         .entry:empty::before{content:''}
         .legend{margin-top:.6rem}
@@ -307,7 +381,7 @@
 
 <header>
     <h1>Schichtplan</h1>
-    <p>Wochenraster – Wochentage &times; Schichten. Dienstag und Mittwoch sind ausgenommen, die Mittelschicht nur am Wochenende.</p>
+    <p id="period">&nbsp;</p>
 </header>
 
 <div class="container">
@@ -315,10 +389,6 @@
     <div class="toolbar">
         <button class="btn primary" id="btn-print">Drucken / PDF</button>
         <button class="btn" id="btn-csv">CSV exportieren</button>
-        <button class="btn" id="btn-add-week">+ Woche</button>
-        <button class="btn" id="btn-remove-week">&minus; Woche</button>
-        <button class="btn danger" id="btn-clear">Einträge leeren</button>
-        <button class="btn danger" id="btn-reset">Alles zurücksetzen</button>
     </div>
 
     <details class="panel">
@@ -326,23 +396,32 @@
         <div class="panel-body">
 
             <div class="panel-section">
-                <h3>Wochentage im Plan</h3>
+                <h3>Was bearbeiten?</h3>
+                <div class="scope-tabs" id="scope-tabs"></div>
+                <p class="scope-note" id="scope-note"></p>
+            </div>
+
+            <div class="panel-section">
+                <h3 id="days-heading">Wochentage</h3>
                 <div class="chips" id="day-chips"></div>
             </div>
 
             <div class="panel-section">
                 <h3>Schichten</h3>
                 <div id="shift-editors"></div>
-                <button class="btn" id="btn-add-shift" style="margin-top:.8rem">+ Schicht hinzufügen</button>
+                <div id="shift-actions" style="margin-top:.8rem;display:flex;gap:.6rem;flex-wrap:wrap"></div>
             </div>
 
-            <div class="panel-section">
-                <h3>Wochen</h3>
-                <div class="weeks-control">
-                    <button class="btn icon" id="btn-week-minus">&minus;</button>
-                    <span id="weeks-count">1</span>
-                    <button class="btn icon" id="btn-week-plus">+</button>
-                    <span style="color:var(--muted);font-size:.8rem">Das Raster wiederholt sich pro Woche.</span>
+            <div class="panel-section" id="horizon-section">
+                <h3>Vorlauf</h3>
+                <div class="horizon">
+                    <label for="horizon-select">Eintragen möglich für</label>
+                    <select id="horizon-select">
+                        <option value="2">2 Wochen</option>
+                        <option value="3">3 Wochen</option>
+                        <option value="4">4 Wochen</option>
+                    </select>
+                    <span class="note">Zählt ab der laufenden Kalenderwoche und rückt jeden Montag automatisch weiter.</span>
                 </div>
             </div>
 
@@ -365,7 +444,9 @@
 (() => {
     'use strict';
 
-    const STORAGE_KEY = 'schichtplan.v1';
+    const STORAGE_KEY = 'schichtplan.v2';
+    const MS_PER_DAY = 86400000;
+    const KEEP_DAYS = 90;               // ältere Einträge werden beim Laden verworfen
 
     const ALL_DAYS = [
         {id:'mo', label:'Montag',     short:'Mo', weekend:false},
@@ -379,127 +460,265 @@
     const DAY_BY_ID = Object.fromEntries(ALL_DAYS.map(d => [d.id, d]));
     const ALL_DAY_IDS = ALL_DAYS.map(d => d.id);
     const WEEKEND_IDS = ALL_DAYS.filter(d => d.weekend).map(d => d.id);
-    const MAX_WEEKS = 12;
 
-    function defaultState(){
-        return {
-            // Dienstag und Mittwoch fallen weg
-            activeDays: ['mo','do','fr','sa','so'],
-            shifts: [
-                {id:'s1', name:'Frühschicht',   start:'10:00', end:'15:00', days:[...ALL_DAY_IDS]},
-                {id:'s2', name:'Mittelschicht', start:'12:00', end:'17:00', days:[...WEEKEND_IDS]},
-                {id:'s3', name:'Spätschicht',   start:'15:00', end:'20:00', days:[...ALL_DAY_IDS]}
-            ],
-            weeks: 1,
-            weekLabels: {},
-            entries: {}
-        };
+    /* ---------- Datum ---------- */
+
+    // Der Plan richtet sich nach dem heutigen Datum. ?heute=JJJJ-MM-TT setzt es
+    // für Tests auf einen festen Tag.
+    function today(){
+        const override = new URLSearchParams(location.search).get('heute');
+        const parsed = override && parseKey(override);
+        return parsed || startOfDay(new Date());
     }
+
+    const startOfDay = date => new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const addDays = (date, count) => new Date(date.getFullYear(), date.getMonth(), date.getDate() + count);
+    const pad = value => String(value).padStart(2, '0');
+    const dateKey = date => date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate());
+
+    function parseKey(key){
+        const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(key));
+        if(!match) return null;
+        const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+        return isNaN(date) ? null : date;
+    }
+
+    const dayIndex = date => (date.getDay() + 6) % 7;                 // Montag = 0
+    const dayIdOf = date => ALL_DAY_IDS[dayIndex(date)];
+    const mondayOf = date => addDays(date, -dayIndex(date));
+
+    // Kalenderwoche nach ISO 8601: Woche beginnt am Montag, KW 1 enthält den
+    // ersten Donnerstag des Jahres.
+    function isoWeek(date){
+        const thursday = addDays(date, 3 - dayIndex(date));
+        const firstThursday = (() => {
+            const jan4 = new Date(thursday.getFullYear(), 0, 4);
+            return addDays(jan4, 3 - dayIndex(jan4));
+        })();
+        return 1 + Math.round((thursday - firstThursday) / (7 * MS_PER_DAY));
+    }
+
+    const formatShort = date => pad(date.getDate()) + '.' + pad(date.getMonth() + 1) + '.';
+    const formatFull = date => formatShort(date) + date.getFullYear();
 
     /* ---------- Zustand ---------- */
 
-    const isTime = v => typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+    const isHour = value => Number.isInteger(value) && value >= 0 && value <= 23;
+    const hourLabel = hour => pad(hour) + ':00';
+
+    function defaultState(){
+        return {
+            // Vorlage: gilt für jede Woche, die nicht eigens angepasst wurde.
+            activeDays: ['mo','do','fr','sa','so'],          // Dienstag und Mittwoch fallen weg
+            shifts: [
+                {id:'s1', name:'Frühschicht',   start:10, end:15, days:[...ALL_DAY_IDS]},
+                {id:'s2', name:'Mittelschicht', start:12, end:17, days:[...WEEKEND_IDS]},
+                {id:'s3', name:'Spätschicht',   start:15, end:20, days:[...ALL_DAY_IDS]}
+            ],
+            horizonWeeks: 3,
+            weekOverrides: {},                               // Montagsdatum -> Abweichung
+            entries: {}                                      // 'JJJJ-MM-TT|schichtId' -> Text
+        };
+    }
 
     function loadState(){
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if(!raw) return defaultState();
-            const p = JSON.parse(raw);
-            if(!p || !Array.isArray(p.shifts) || !Array.isArray(p.activeDays)) return defaultState();
-            return {
-                activeDays: ALL_DAY_IDS.filter(id => p.activeDays.includes(id)),
-                shifts: p.shifts.map((s, i) => ({
-                    id:    String(s && s.id ? s.id : 's' + (i + 1)),
-                    name:  s && typeof s.name === 'string' ? s.name : '',
-                    start: isTime(s && s.start) ? s.start : '08:00',
-                    end:   isTime(s && s.end)   ? s.end   : '16:00',
-                    days:  Array.isArray(s && s.days) ? ALL_DAY_IDS.filter(id => s.days.includes(id)) : [...ALL_DAY_IDS]
+            const stored = JSON.parse(raw);
+            if(!stored || !Array.isArray(stored.shifts) || !Array.isArray(stored.activeDays)) return defaultState();
+
+            const cutoff = dateKey(addDays(today(), -KEEP_DAYS));
+            const state = {
+                activeDays: ALL_DAY_IDS.filter(id => stored.activeDays.includes(id)),
+                shifts: stored.shifts.map((shift, index) => ({
+                    id:    String(shift && shift.id ? shift.id : 's' + (index + 1)),
+                    name:  shift && typeof shift.name === 'string' ? shift.name : '',
+                    start: isHour(shift && shift.start) ? shift.start : 8,
+                    end:   isHour(shift && shift.end) ? shift.end : 16,
+                    days:  Array.isArray(shift && shift.days)
+                        ? ALL_DAY_IDS.filter(id => shift.days.includes(id))
+                        : [...ALL_DAY_IDS]
                 })),
-                weeks: Math.min(Math.max(parseInt(p.weeks, 10) || 1, 1), MAX_WEEKS),
-                weekLabels: p.weekLabels && typeof p.weekLabels === 'object' ? p.weekLabels : {},
-                entries: p.entries && typeof p.entries === 'object' ? p.entries : {}
+                horizonWeeks: Math.min(Math.max(parseInt(stored.horizonWeeks, 10) || 3, 2), 4),
+                weekOverrides: {},
+                entries: {}
             };
-        } catch(e){
+
+            const shiftIds = new Set(state.shifts.map(shift => shift.id));
+
+            Object.entries(stored.weekOverrides || {}).forEach(([key, override]) => {
+                if(!parseKey(key) || key < cutoff || !override) return;
+                const clean = {};
+                if(Array.isArray(override.days)) clean.days = ALL_DAY_IDS.filter(id => override.days.includes(id));
+                if(override.shiftDays && typeof override.shiftDays === 'object'){
+                    clean.shiftDays = {};
+                    Object.entries(override.shiftDays).forEach(([shiftId, days]) => {
+                        if(!shiftIds.has(shiftId) || !Array.isArray(days)) return;
+                        clean.shiftDays[shiftId] = ALL_DAY_IDS.filter(id => days.includes(id));
+                    });
+                }
+                state.weekOverrides[key] = clean;
+            });
+
+            Object.entries(stored.entries || {}).forEach(([key, value]) => {
+                const [day, shiftId] = key.split('|');
+                if(!parseKey(day) || day < cutoff || !shiftIds.has(shiftId)) return;
+                if(typeof value === 'string' && value) state.entries[key] = value;
+            });
+
+            return state;
+        } catch(error){
             return defaultState();
         }
     }
 
     function save(){
-        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(error){}
     }
 
     let state = loadState();
+    let editScope = 'template';          // 'template' oder Montagsdatum einer Woche
 
-    /* ---------- Hilfsfunktionen ---------- */
+    /* ---------- Ableitungen ---------- */
 
-    const entryKey  = (week, shiftId, dayId) => week + '|' + shiftId + '|' + dayId;
-    const activeDayObjects = () => state.activeDays.map(id => DAY_BY_ID[id]);
-    const isBlocked = (shift, dayId) => !shift.days.includes(dayId);
-    const newShiftId = () => 's' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36);
+    const entryKey = (date, shiftId) => dateKey(date) + '|' + shiftId;
+    const newShiftId = () => 's' + Date.now().toString(36) + Math.floor(Math.random() * 1296).toString(36);
+
+    function visibleWeeks(){
+        const start = mondayOf(today());
+        return Array.from({length: state.horizonWeeks}, (unused, index) => addDays(start, index * 7));
+    }
+
+    const overrideOf = monday => state.weekOverrides[dateKey(monday)];
+    const isCustomised = monday => {
+        const override = overrideOf(monday);
+        return Boolean(override && (override.days || (override.shiftDays && Object.keys(override.shiftDays).length)));
+    };
+
+    function weekDayIds(monday){
+        const override = overrideOf(monday);
+        return override && override.days ? override.days : state.activeDays;
+    }
+
+    function shiftDayIds(monday, shift){
+        const override = overrideOf(monday);
+        const custom = override && override.shiftDays && override.shiftDays[shift.id];
+        return custom || shift.days;
+    }
+
+    // Spalten der Woche: erlaubte Wochentage, aus denen vergangene Tage herausfallen.
+    function weekColumns(monday){
+        const allowed = weekDayIds(monday);
+        const from = dateKey(today());
+        const columns = [];
+        for(let offset = 0; offset < 7; offset++){
+            const date = addDays(monday, offset);
+            if(!allowed.includes(dayIdOf(date))) continue;
+            if(dateKey(date) < from) continue;
+            columns.push(date);
+        }
+        return columns;
+    }
 
     function durationLabel(shift){
-        const [sh, sm] = shift.start.split(':').map(Number);
-        const [eh, em] = shift.end.split(':').map(Number);
-        let minutes = (eh * 60 + em) - (sh * 60 + sm);
-        if(minutes <= 0) minutes += 24 * 60;          // über Mitternacht
-        const hours = minutes / 60;
-        return hours.toLocaleString('de-DE', {maximumFractionDigits: 2}) + ' Std';
+        let hours = shift.end - shift.start;
+        if(hours <= 0) hours += 24;
+        return hours + ' Std';
     }
 
-    function availabilityBadge(shift){
-        const active = state.activeDays;
-        const open = active.filter(id => shift.days.includes(id));
-        if(open.length === active.length) return '';                 // überall offen
-        if(open.length === 0) return 'an keinem aktiven Tag';
-        return 'nur ' + open.map(id => DAY_BY_ID[id].short).join(' · ');
+    function availabilityBadge(monday, shift){
+        const columns = weekColumns(monday);
+        const allowed = shiftDayIds(monday, shift);
+        const open = columns.filter(date => allowed.includes(dayIdOf(date)));
+        if(open.length === columns.length) return '';
+        if(open.length === 0) return 'diese Woche nicht besetzt';
+        return 'nur ' + open.map(date => DAY_BY_ID[dayIdOf(date)].short).join(' · ');
     }
 
-    const weekLabel = week => state.weekLabels[week] || ('Woche ' + week);
+    // Legt beim ersten Eingriff eine Abweichung an, die den aktuellen Stand kopiert.
+    function ensureOverride(monday){
+        const key = dateKey(monday);
+        if(!state.weekOverrides[key]){
+            state.weekOverrides[key] = {
+                days: [...state.activeDays],
+                shiftDays: Object.fromEntries(state.shifts.map(shift => [shift.id, [...shift.days]]))
+            };
+        }
+        const override = state.weekOverrides[key];
+        if(!override.days) override.days = [...state.activeDays];
+        if(!override.shiftDays) override.shiftDays = {};
+        state.shifts.forEach(shift => {
+            if(!override.shiftDays[shift.id]) override.shiftDays[shift.id] = [...shift.days];
+        });
+        return override;
+    }
 
-    /* ---------- Plan rendern ---------- */
+    /* ---------- Plan ---------- */
 
     const planEl = document.getElementById('plan');
+    const periodEl = document.getElementById('period');
 
     function renderPlan(){
         planEl.textContent = '';
+        const weeks = visibleWeeks();
+        const filled = weeks.filter(monday => weekColumns(monday).length > 0);
 
-        if(state.activeDays.length === 0 || state.shifts.length === 0){
+        if(state.shifts.length === 0 || filled.length === 0){
+            periodEl.textContent = 'Zurzeit gibt es keine Tage zum Eintragen.';
             const hint = document.createElement('div');
             hint.className = 'empty-hint';
-            hint.textContent = 'Kein Raster vorhanden – bitte oben mindestens einen Wochentag und eine Schicht aktivieren.';
+            hint.textContent = state.shifts.length === 0
+                ? 'Es ist keine Schicht angelegt – bitte oben eine Schicht hinzufügen.'
+                : 'In den nächsten Wochen ist kein Wochentag freigegeben – bitte oben Wochentage aktivieren.';
             planEl.appendChild(hint);
             return;
         }
 
-        for(let week = 1; week <= state.weeks; week++){
-            planEl.appendChild(renderWeek(week));
-        }
+        const firstDay = weekColumns(filled[0])[0];
+        const lastColumns = weekColumns(filled[filled.length - 1]);
+        const lastDay = lastColumns[lastColumns.length - 1];
+        periodEl.textContent = 'Eintragen von ' + DAY_BY_ID[dayIdOf(firstDay)].short + ' ' + formatShort(firstDay)
+            + ' bis ' + DAY_BY_ID[dayIdOf(lastDay)].short + ' ' + formatFull(lastDay)
+            + ' · KW ' + isoWeek(firstDay) + '–' + isoWeek(lastDay);
+
+        filled.forEach(monday => planEl.appendChild(renderWeek(monday)));
     }
 
-    function renderWeek(week){
-        const days = activeDayObjects();
+    function renderWeek(monday){
+        const columns = weekColumns(monday);
+        const sunday = addDays(monday, 6);
 
         const section = document.createElement('section');
         section.className = 'week';
 
-        const title = document.createElement('h2');
-        title.className = 'week-title';
-        title.textContent = weekLabel(week);
-        title.contentEditable = 'true';
-        title.spellcheck = false;
-        title.title = 'Bezeichnung anpassen, z. B. „KW 34“';
-        title.addEventListener('input', () => {
-            state.weekLabels[week] = title.textContent.trim();
-            save();
-        });
-        section.appendChild(title);
+        const head = document.createElement('div');
+        head.className = 'week-head';
+
+        const heading = document.createElement('h2');
+        heading.textContent = 'KW ' + isoWeek(monday);
+        head.appendChild(heading);
+
+        const span = document.createElement('span');
+        span.className = 'span';
+        span.textContent = formatShort(monday) + ' – ' + formatFull(sunday);
+        head.appendChild(span);
+
+        if(isCustomised(monday)){
+            const tag = document.createElement('span');
+            tag.className = 'tag';
+            tag.textContent = 'angepasst';
+            head.appendChild(tag);
+        }
+
+        section.appendChild(head);
 
         const wrap = document.createElement('div');
         wrap.className = 'table-wrap';
 
         const table = document.createElement('table');
+        const todayKey = dateKey(today());
 
-        // Kopfzeile: Wochentage
         const thead = document.createElement('thead');
         const headRow = document.createElement('tr');
         const corner = document.createElement('th');
@@ -508,20 +727,26 @@
         corner.textContent = 'Schicht';
         headRow.appendChild(corner);
 
-        days.forEach(day => {
+        columns.forEach(date => {
+            const day = DAY_BY_ID[dayIdOf(date)];
             const th = document.createElement('th');
             th.scope = 'col';
             th.textContent = day.label;
+            const sub = document.createElement('span');
+            sub.className = 'date';
+            sub.textContent = formatShort(date);
+            th.appendChild(sub);
             if(day.weekend) th.classList.add('weekend');
+            if(dateKey(date) === todayKey) th.classList.add('today');
             headRow.appendChild(th);
         });
         thead.appendChild(headRow);
         table.appendChild(thead);
 
-        // Zeilen: Schichten
         const tbody = document.createElement('tbody');
         state.shifts.forEach(shift => {
             const row = document.createElement('tr');
+            const allowed = shiftDayIds(monday, shift);
 
             const rowHead = document.createElement('th');
             rowHead.className = 'shift';
@@ -529,7 +754,7 @@
 
             const time = document.createElement('span');
             time.className = 'time';
-            time.textContent = shift.start + ' – ' + shift.end;
+            time.textContent = hourLabel(shift.start) + ' – ' + hourLabel(shift.end);
             rowHead.appendChild(time);
 
             if(shift.name){
@@ -544,7 +769,7 @@
             meta.textContent = durationLabel(shift);
             rowHead.appendChild(meta);
 
-            const badgeText = availabilityBadge(shift);
+            const badgeText = availabilityBadge(monday, shift);
             if(badgeText){
                 const badge = document.createElement('span');
                 badge.className = 'badge';
@@ -553,11 +778,7 @@
             }
 
             row.appendChild(rowHead);
-
-            days.forEach(day => {
-                row.appendChild(renderCell(week, shift, day));
-            });
-
+            columns.forEach(date => row.appendChild(renderCell(date, shift, allowed, todayKey)));
             tbody.appendChild(row);
         });
         table.appendChild(tbody);
@@ -567,15 +788,17 @@
         return section;
     }
 
-    function renderCell(week, shift, day){
+    function renderCell(date, shift, allowed, todayKey){
+        const day = DAY_BY_ID[dayIdOf(date)];
         const td = document.createElement('td');
         td.className = 'cell';
         if(day.weekend) td.classList.add('weekend');
+        if(dateKey(date) === todayKey) td.classList.add('today');
 
-        if(isBlocked(shift, day.id)){
+        if(!allowed.includes(day.id)){
             td.classList.add('blocked');
             td.setAttribute('aria-label',
-                shift.start + ' – ' + shift.end + ' am ' + day.label + ': nicht verfügbar');
+                hourLabel(shift.start) + ' – ' + hourLabel(shift.end) + ' am ' + day.label + ' ' + formatShort(date) + ': nicht verfügbar');
             const locked = document.createElement('div');
             locked.className = 'locked';
             locked.textContent = 'nicht verfügbar';
@@ -583,15 +806,14 @@
             return td;
         }
 
-        const key = entryKey(week, shift.id, day.id);
+        const key = entryKey(date, shift.id);
         const entry = document.createElement('div');
         entry.className = 'entry';
         entry.contentEditable = 'true';
         entry.spellcheck = false;
-        entry.dataset.key = key;
         entry.setAttribute('role', 'textbox');
         entry.setAttribute('aria-label',
-            weekLabel(week) + ', ' + day.label + ', ' + shift.start + ' – ' + shift.end);
+            day.label + ' ' + formatShort(date) + ', ' + hourLabel(shift.start) + ' – ' + hourLabel(shift.end));
         entry.textContent = state.entries[key] || '';
 
         entry.addEventListener('input', () => {
@@ -621,32 +843,92 @@
         return td;
     }
 
-    /* ---------- Konfiguration rendern ---------- */
+    /* ---------- Konfiguration ---------- */
 
+    const scopeTabsEl = document.getElementById('scope-tabs');
+    const scopeNoteEl = document.getElementById('scope-note');
+    const daysHeadingEl = document.getElementById('days-heading');
     const dayChipsEl = document.getElementById('day-chips');
     const shiftEditorsEl = document.getElementById('shift-editors');
-    const weeksCountEl = document.getElementById('weeks-count');
+    const shiftActionsEl = document.getElementById('shift-actions');
+    const horizonSectionEl = document.getElementById('horizon-section');
+    const horizonSelectEl = document.getElementById('horizon-select');
 
-    function renderConfig(){
-        renderDayChips();
-        renderShiftEditors();
-        weeksCountEl.textContent = String(state.weeks);
+    function scopeMonday(){
+        if(editScope === 'template') return null;
+        const monday = parseKey(editScope);
+        const stillVisible = monday && visibleWeeks().some(week => dateKey(week) === editScope);
+        if(!stillVisible){
+            editScope = 'template';
+            return null;
+        }
+        return monday;
     }
 
-    function renderDayChips(){
+    function renderConfig(){
+        const monday = scopeMonday();
+        renderScopeTabs(monday);
+        renderDayChips(monday);
+        renderShiftEditors(monday);
+        horizonSectionEl.hidden = Boolean(monday);
+        horizonSelectEl.value = String(state.horizonWeeks);
+    }
+
+    function renderScopeTabs(monday){
+        scopeTabsEl.textContent = '';
+
+        const template = document.createElement('button');
+        template.type = 'button';
+        template.className = 'scope-tab' + (monday ? '' : ' on');
+        template.textContent = 'Standard';
+        template.addEventListener('click', () => { editScope = 'template'; renderConfig(); });
+        scopeTabsEl.appendChild(template);
+
+        visibleWeeks().forEach(week => {
+            const key = dateKey(week);
+            const tab = document.createElement('button');
+            tab.type = 'button';
+            tab.className = 'scope-tab' + (monday && dateKey(monday) === key ? ' on' : '');
+            tab.textContent = 'KW ' + isoWeek(week);
+            if(isCustomised(week)){
+                const mark = document.createElement('span');
+                mark.className = 'mark';
+                mark.textContent = '●';
+                mark.title = 'angepasst';
+                tab.appendChild(mark);
+            }
+            tab.addEventListener('click', () => { editScope = key; renderConfig(); });
+            scopeTabsEl.appendChild(tab);
+        });
+
+        if(monday){
+            scopeNoteEl.textContent = 'Änderungen gelten nur für KW ' + isoWeek(monday)
+                + ' (' + formatShort(monday) + ' – ' + formatFull(addDays(monday, 6)) + ').';
+            daysHeadingEl.textContent = 'Wochentage in KW ' + isoWeek(monday);
+        } else {
+            scopeNoteEl.textContent = 'Der Standard gilt für jede Woche, die nicht eigens angepasst wurde – '
+                + 'auch für Wochen, die später dazukommen.';
+            daysHeadingEl.textContent = 'Wochentage im Standard';
+        }
+    }
+
+    function renderDayChips(monday){
         dayChipsEl.textContent = '';
+        const selected = monday ? weekDayIds(monday) : state.activeDays;
+
         ALL_DAYS.forEach(day => {
             const chip = document.createElement('button');
             chip.type = 'button';
-            chip.className = 'chip' + (state.activeDays.includes(day.id) ? ' on' : '');
+            chip.className = 'chip' + (selected.includes(day.id) ? ' on' : '');
             chip.textContent = day.label;
+            chip.setAttribute('aria-pressed', String(selected.includes(day.id)));
             chip.addEventListener('click', () => {
-                if(state.activeDays.includes(day.id)){
-                    state.activeDays = state.activeDays.filter(id => id !== day.id);
-                } else {
-                    state.activeDays = ALL_DAY_IDS.filter(
-                        id => id === day.id || state.activeDays.includes(id));
-                }
+                const current = monday ? ensureOverride(monday).days : state.activeDays;
+                const next = current.includes(day.id)
+                    ? current.filter(id => id !== day.id)
+                    : ALL_DAY_IDS.filter(id => id === day.id || current.includes(id));
+                if(monday) ensureOverride(monday).days = next;
+                else state.activeDays = next;
                 save();
                 renderConfig();
                 renderPlan();
@@ -655,36 +937,50 @@
         });
     }
 
-    function renderShiftEditors(){
+    function renderShiftEditors(monday){
         shiftEditorsEl.textContent = '';
+        shiftActionsEl.textContent = '';
+
+        const weekDays = monday ? weekColumns(monday).map(dayIdOf) : null;
 
         state.shifts.forEach((shift, index) => {
             const box = document.createElement('div');
             box.className = 'shift-editor';
 
-            const name = document.createElement('input');
-            name.type = 'text';
-            name.value = shift.name;
-            name.placeholder = 'Bezeichnung (optional)';
-            name.setAttribute('aria-label', 'Bezeichnung der Schicht');
-            name.addEventListener('input', () => {
-                shift.name = name.value;
-                save();
-                renderPlan();
-            });
-            box.appendChild(name);
+            if(monday){
+                const time = document.createElement('span');
+                time.className = 'fixed-time';
+                time.textContent = hourLabel(shift.start) + ' – ' + hourLabel(shift.end);
+                box.appendChild(time);
 
-            const start = timeInput(shift, 'start', 'Beginn');
-            const end = timeInput(shift, 'end', 'Ende');
-            box.appendChild(start);
-            box.appendChild(end);
+                const name = document.createElement('span');
+                name.className = 'fixed-name';
+                name.textContent = shift.name;
+                box.appendChild(name);
 
-            const tools = document.createElement('div');
-            tools.className = 'tools';
-            tools.appendChild(iconButton('▲', 'Nach oben', index > 0, () => moveShift(index, -1)));
-            tools.appendChild(iconButton('▼', 'Nach unten', index < state.shifts.length - 1, () => moveShift(index, 1)));
-            tools.appendChild(iconButton('✕', 'Schicht löschen', true, () => removeShift(index)));
-            box.appendChild(tools);
+                box.style.gridTemplateColumns = 'auto 1fr';
+            } else {
+                const name = document.createElement('input');
+                name.type = 'text';
+                name.value = shift.name;
+                name.placeholder = 'Bezeichnung (optional)';
+                name.setAttribute('aria-label', 'Bezeichnung der Schicht');
+                name.addEventListener('input', () => {
+                    shift.name = name.value;
+                    save();
+                    renderPlan();
+                });
+                box.appendChild(name);
+                box.appendChild(hourSelect(shift, 'start', 'Beginn'));
+                box.appendChild(hourSelect(shift, 'end', 'Ende'));
+
+                const tools = document.createElement('div');
+                tools.className = 'tools';
+                tools.appendChild(iconButton('▲', 'Nach oben', index > 0, () => moveShift(index, -1)));
+                tools.appendChild(iconButton('▼', 'Nach unten', index < state.shifts.length - 1, () => moveShift(index, 1)));
+                tools.appendChild(deleteButton(index));
+                box.appendChild(tools);
+            }
 
             const days = document.createElement('div');
             days.className = 'days';
@@ -693,26 +989,28 @@
             label.textContent = 'verfügbar an:';
             days.appendChild(label);
 
+            const allowed = monday ? shiftDayIds(monday, shift) : shift.days;
+
             ALL_DAYS.forEach(day => {
                 const chip = document.createElement('button');
                 chip.type = 'button';
-                const inPlan = state.activeDays.includes(day.id);
+                const inPlan = monday ? weekDays.includes(day.id) : state.activeDays.includes(day.id);
                 chip.className = 'chip'
-                    + (shift.days.includes(day.id) ? ' on' : '')
+                    + (allowed.includes(day.id) ? ' on' : '')
                     + (inPlan ? '' : ' off-day');
                 chip.textContent = day.short;
-                chip.title = inPlan
-                    ? day.label
-                    : day.label + ' – im Plan ausgeblendet';
+                chip.title = inPlan ? day.label : day.label + ' – in dieser Ansicht keine Spalte';
+                chip.setAttribute('aria-label', day.label);
+                chip.setAttribute('aria-pressed', String(allowed.includes(day.id)));
                 chip.addEventListener('click', () => {
-                    if(shift.days.includes(day.id)){
-                        shift.days = shift.days.filter(id => id !== day.id);
-                    } else {
-                        shift.days = ALL_DAY_IDS.filter(
-                            id => id === day.id || shift.days.includes(id));
-                    }
-                    chip.classList.toggle('on', shift.days.includes(day.id));
+                    const current = monday ? ensureOverride(monday).shiftDays[shift.id] : shift.days;
+                    const next = current.includes(day.id)
+                        ? current.filter(id => id !== day.id)
+                        : ALL_DAY_IDS.filter(id => id === day.id || current.includes(id));
+                    if(monday) ensureOverride(monday).shiftDays[shift.id] = next;
+                    else shift.days = next;
                     save();
+                    renderConfig();
                     renderPlan();
                 });
                 days.appendChild(chip);
@@ -721,24 +1019,47 @@
             box.appendChild(days);
             shiftEditorsEl.appendChild(box);
         });
+
+        if(monday){
+            const reset = document.createElement('button');
+            reset.type = 'button';
+            reset.className = 'btn';
+            reset.textContent = 'Diese Woche auf Standard zurücksetzen';
+            reset.disabled = !isCustomised(monday);
+            if(reset.disabled) reset.style.opacity = '.5';
+            reset.addEventListener('click', () => {
+                delete state.weekOverrides[dateKey(monday)];
+                save();
+                renderConfig();
+                renderPlan();
+            });
+            shiftActionsEl.appendChild(reset);
+        } else {
+            const add = document.createElement('button');
+            add.type = 'button';
+            add.className = 'btn';
+            add.textContent = '+ Schicht hinzufügen';
+            add.addEventListener('click', addShift);
+            shiftActionsEl.appendChild(add);
+        }
     }
 
-    function timeInput(shift, field, ariaLabel){
-        const input = document.createElement('input');
-        input.type = 'time';
-        input.value = shift[field];
-        input.step = 300;
-        input.setAttribute('aria-label', ariaLabel);
-        input.addEventListener('change', () => {
-            if(isTime(input.value)){
-                shift[field] = input.value;
-                save();
-                renderPlan();
-            } else {
-                input.value = shift[field];
-            }
+    function hourSelect(shift, field, ariaLabel){
+        const select = document.createElement('select');
+        select.setAttribute('aria-label', ariaLabel);
+        for(let hour = 0; hour < 24; hour++){
+            const option = document.createElement('option');
+            option.value = String(hour);
+            option.textContent = hourLabel(hour);
+            select.appendChild(option);
+        }
+        select.value = String(shift[field]);
+        select.addEventListener('change', () => {
+            shift[field] = Number(select.value);
+            save();
+            renderPlan();
         });
-        return input;
+        return select;
     }
 
     function iconButton(symbol, title, enabled, onClick){
@@ -754,6 +1075,40 @@
         return button;
     }
 
+    // Löschen fragt im Button selbst nach: erster Klick schaltet scharf,
+    // zweiter löscht. Kein Systemdialog, der je nach Umgebung blockiert wird.
+    function deleteButton(index){
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn icon';
+        button.textContent = '✕';
+        button.title = 'Schicht löschen';
+        button.setAttribute('aria-label', 'Schicht löschen');
+        let armed = false;
+        let timer = 0;
+
+        const disarm = () => {
+            armed = false;
+            clearTimeout(timer);
+            button.textContent = '✕';
+            button.classList.remove('armed');
+        };
+
+        button.addEventListener('click', () => {
+            if(!armed){
+                armed = true;
+                button.textContent = 'Wirklich löschen?';
+                button.classList.add('armed');
+                timer = setTimeout(disarm, 5000);
+                return;
+            }
+            disarm();
+            removeShift(index);
+        });
+        button.addEventListener('blur', disarm);
+        return button;
+    }
+
     function moveShift(index, direction){
         const target = index + direction;
         if(target < 0 || target >= state.shifts.length) return;
@@ -766,10 +1121,12 @@
 
     function removeShift(index){
         const shift = state.shifts[index];
-        if(!confirm('Schicht „' + shift.start + ' – ' + shift.end + '“ mit allen Einträgen löschen?')) return;
         state.shifts.splice(index, 1);
         Object.keys(state.entries).forEach(key => {
             if(key.split('|')[1] === shift.id) delete state.entries[key];
+        });
+        Object.values(state.weekOverrides).forEach(override => {
+            if(override.shiftDays) delete override.shiftDays[shift.id];
         });
         save();
         renderConfig();
@@ -777,33 +1134,18 @@
     }
 
     function addShift(){
-        state.shifts.push({
-            id: newShiftId(),
-            name: '',
-            start: '08:00',
-            end: '13:00',
-            days: [...ALL_DAY_IDS]
-        });
+        state.shifts.push({id: newShiftId(), name: '', start: 8, end: 13, days: [...ALL_DAY_IDS]});
         save();
         renderConfig();
         renderPlan();
     }
 
-    function setWeeks(count){
-        const next = Math.min(Math.max(count, 1), MAX_WEEKS);
-        if(next === state.weeks) return;
-        if(next < state.weeks && !confirm('Woche entfernen? Die Einträge dieser Woche gehen verloren.')) return;
-        for(let week = next + 1; week <= state.weeks; week++){
-            delete state.weekLabels[week];
-            Object.keys(state.entries).forEach(key => {
-                if(key.split('|')[0] === String(week)) delete state.entries[key];
-            });
-        }
-        state.weeks = next;
+    horizonSelectEl.addEventListener('change', () => {
+        state.horizonWeeks = Math.min(Math.max(parseInt(horizonSelectEl.value, 10) || 3, 2), 4);
         save();
         renderConfig();
         renderPlan();
-    }
+    });
 
     /* ---------- Export ---------- */
 
@@ -813,22 +1155,27 @@
     }
 
     function exportCsv(){
-        const days = activeDayObjects();
         const rows = [];
 
-        for(let week = 1; week <= state.weeks; week++){
-            rows.push([weekLabel(week), ...days.map(day => day.label)]);
+        visibleWeeks().forEach(monday => {
+            const columns = weekColumns(monday);
+            if(columns.length === 0) return;
+
+            rows.push(['KW ' + isoWeek(monday) + ' (' + formatShort(monday) + '-' + formatFull(addDays(monday, 6)) + ')',
+                ...columns.map(date => DAY_BY_ID[dayIdOf(date)].short + ' ' + formatShort(date))]);
+
             state.shifts.forEach(shift => {
-                const row = [shift.start + ' - ' + shift.end + (shift.name ? ' (' + shift.name + ')' : '')];
-                days.forEach(day => {
-                    row.push(isBlocked(shift, day.id)
-                        ? 'nicht verfügbar'
-                        : (state.entries[entryKey(week, shift.id, day.id)] || '').replace(/\n/g, ' / '));
+                const allowed = shiftDayIds(monday, shift);
+                const row = [hourLabel(shift.start) + ' - ' + hourLabel(shift.end) + (shift.name ? ' (' + shift.name + ')' : '')];
+                columns.forEach(date => {
+                    row.push(allowed.includes(dayIdOf(date))
+                        ? (state.entries[entryKey(date, shift.id)] || '').replace(/\n/g, ' / ')
+                        : 'nicht verfügbar');
                 });
                 rows.push(row);
             });
             rows.push([]);
-        }
+        });
 
         const csv = '\uFEFF' + rows.map(row => row.map(csvField).join(';')).join('\r\n');
         const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
@@ -842,30 +1189,8 @@
         URL.revokeObjectURL(url);
     }
 
-    /* ---------- Werkzeugleiste ---------- */
-
     document.getElementById('btn-print').addEventListener('click', () => window.print());
     document.getElementById('btn-csv').addEventListener('click', exportCsv);
-    document.getElementById('btn-add-week').addEventListener('click', () => setWeeks(state.weeks + 1));
-    document.getElementById('btn-remove-week').addEventListener('click', () => setWeeks(state.weeks - 1));
-    document.getElementById('btn-week-plus').addEventListener('click', () => setWeeks(state.weeks + 1));
-    document.getElementById('btn-week-minus').addEventListener('click', () => setWeeks(state.weeks - 1));
-    document.getElementById('btn-add-shift').addEventListener('click', addShift);
-
-    document.getElementById('btn-clear').addEventListener('click', () => {
-        if(!confirm('Alle Einträge im Plan löschen? Schichten und Wochentage bleiben erhalten.')) return;
-        state.entries = {};
-        save();
-        renderPlan();
-    });
-
-    document.getElementById('btn-reset').addEventListener('click', () => {
-        if(!confirm('Plan komplett zurücksetzen – Schichten, Wochentage und Einträge?')) return;
-        state = defaultState();
-        save();
-        renderConfig();
-        renderPlan();
-    });
 
     /* ---------- Start ---------- */
 
