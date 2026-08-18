@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Schichtplan – Wochenraster</title>
+<style>
+    :root{
+        --bg:#f5f7fa;
+        --ink:#2d3436;
+        --muted:#78889a;
+        --line:#dde5ec;
+        --card:#ffffff;
+        --brand:#3498db;
+        --brand-dark:#2c3e50;
+        --weekend:#eaf4fc;
+        --blocked:#f0f2f5;
+        --strike:#a9b6c3;
+        --shadow:0 2px 8px rgba(0,0,0,.08);
+    }
+
+    *{margin:0;padding:0;box-sizing:border-box}
+
+    body{
+        font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+        background:var(--bg);
+        color:var(--ink);
+        line-height:1.5;
+    }
+
+    header{
+        background:linear-gradient(135deg,var(--brand-dark),var(--brand));
+        color:#fff;
+        padding:2.2rem 1.5rem;
+        text-align:center;
+    }
+    header h1{font-size:1.7rem;margin-bottom:.4rem}
+    header p{font-size:.95rem;opacity:.9}
+
+    .container{max-width:1200px;margin:0 auto;padding:1.5rem}
+
+    /* ---------- Werkzeugleiste ---------- */
+    .toolbar{
+        display:flex;
+        flex-wrap:wrap;
+        gap:.6rem;
+        margin-bottom:1.2rem;
+    }
+    .btn{
+        font:inherit;
+        font-size:.88rem;
+        padding:.5rem .9rem;
+        border:1px solid var(--line);
+        border-radius:6px;
+        background:var(--card);
+        color:var(--ink);
+        cursor:pointer;
+        box-shadow:var(--shadow);
+        transition:background .15s,border-color .15s;
+    }
+    .btn:hover{border-color:var(--brand);color:var(--brand-dark)}
+    .btn.primary{background:var(--brand);border-color:var(--brand);color:#fff}
+    .btn.primary:hover{background:#2c85c0;color:#fff}
+    .btn.danger:hover{border-color:#c0392b;color:#c0392b}
+    .btn.icon{padding:.3rem .5rem;font-size:.8rem;box-shadow:none}
+
+    /* ---------- Konfiguration ---------- */
+    .panel{
+        background:var(--card);
+        border-radius:10px;
+        box-shadow:var(--shadow);
+        margin-bottom:1.5rem;
+        overflow:hidden;
+    }
+    .panel>summary{
+        cursor:pointer;
+        padding:.9rem 1.2rem;
+        font-weight:600;
+        font-size:.95rem;
+        list-style:none;
+        display:flex;
+        align-items:center;
+        gap:.5rem;
+    }
+    .panel>summary::-webkit-details-marker{display:none}
+    .panel>summary::before{content:'▸';color:var(--brand);font-size:.9rem}
+    .panel[open]>summary::before{content:'▾'}
+    .panel-body{padding:0 1.2rem 1.2rem;border-top:1px solid var(--line)}
+
+    .panel-section{margin-top:1.2rem}
+    .panel-section h3{
+        font-size:.78rem;
+        text-transform:uppercase;
+        letter-spacing:.06em;
+        color:var(--muted);
+        margin-bottom:.6rem;
+    }
+
+    .chips{display:flex;flex-wrap:wrap;gap:.4rem}
+    .chip{
+        font:inherit;
+        font-size:.8rem;
+        padding:.3rem .7rem;
+        border:1px solid var(--line);
+        border-radius:999px;
+        background:#fff;
+        color:var(--muted);
+        cursor:pointer;
+    }
+    .chip.on{background:var(--brand);border-color:var(--brand);color:#fff}
+    .chip.off-day{opacity:.45;font-style:italic}
+    .chip:hover{border-color:var(--brand)}
+
+    .shift-editor{
+        display:grid;
+        grid-template-columns:minmax(140px,1.4fr) auto auto auto;
+        gap:.6rem;
+        align-items:center;
+        padding:.7rem 0;
+        border-bottom:1px solid var(--line);
+    }
+    .shift-editor:last-of-type{border-bottom:none}
+    .shift-editor .days{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.35rem;align-items:center}
+    .shift-editor .days .label{font-size:.75rem;color:var(--muted);margin-right:.3rem}
+    .shift-editor input[type=text],
+    .shift-editor input[type=time]{
+        font:inherit;
+        font-size:.85rem;
+        padding:.35rem .5rem;
+        border:1px solid var(--line);
+        border-radius:5px;
+        background:#fff;
+        color:var(--ink);
+    }
+    .shift-editor input[type=text]{width:100%}
+    .shift-editor .tools{display:flex;gap:.3rem}
+
+    .weeks-control{display:flex;align-items:center;gap:.6rem;font-size:.9rem}
+
+    /* ---------- Plan ---------- */
+    .week{margin-bottom:2rem}
+    .week-title{
+        font-size:1.05rem;
+        margin-bottom:.6rem;
+        padding:.15rem .4rem;
+        border-radius:5px;
+        display:inline-block;
+        outline:none;
+    }
+    .week-title:focus{background:#fff;box-shadow:0 0 0 2px var(--brand)}
+
+    .table-wrap{
+        background:var(--card);
+        border-radius:10px;
+        box-shadow:var(--shadow);
+        overflow-x:auto;
+    }
+
+    table{
+        width:100%;
+        min-width:760px;
+        border-collapse:collapse;
+        table-layout:fixed;
+    }
+
+    th,td{border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+    th:last-child,td:last-child{border-right:none}
+    tr:last-child td,tr:last-child th{border-bottom:none}
+
+    thead th{
+        background:#f8fafc;
+        padding:.7rem .6rem;
+        font-size:.9rem;
+        text-align:center;
+        color:var(--brand-dark);
+    }
+    thead th.weekend{background:var(--weekend)}
+    thead th.corner{
+        width:170px;
+        text-align:left;
+        font-size:.78rem;
+        text-transform:uppercase;
+        letter-spacing:.06em;
+        color:var(--muted);
+    }
+
+    th.shift{
+        padding:.7rem .6rem;
+        text-align:left;
+        vertical-align:top;
+        background:#f8fafc;
+        font-weight:600;
+    }
+    th.shift .time{display:block;font-size:.95rem;color:var(--brand-dark)}
+    th.shift .name{display:block;font-size:.8rem;font-weight:400;color:var(--muted)}
+    th.shift .meta{display:block;font-size:.72rem;font-weight:400;color:var(--muted);margin-top:.25rem}
+    th.shift .badge{
+        display:inline-block;
+        margin-top:.3rem;
+        padding:.1rem .45rem;
+        border-radius:999px;
+        background:var(--weekend);
+        color:var(--brand-dark);
+        font-size:.68rem;
+        font-weight:600;
+    }
+
+    td.cell{position:relative;vertical-align:top;padding:0;height:64px}
+    td.cell.weekend{background:#fbfdff}
+
+    .entry{
+        min-height:64px;
+        padding:.5rem .6rem;
+        font-size:.88rem;
+        white-space:pre-wrap;
+        word-break:break-word;
+        outline:none;
+    }
+    .entry:focus{box-shadow:inset 0 0 0 2px var(--brand);background:#fff}
+    .entry:empty::before{content:'+';color:#c6d0da}
+
+    td.blocked{background:var(--blocked)}
+    td.blocked::after{
+        content:'';
+        position:absolute;
+        inset:0;
+        background:linear-gradient(to top right,
+            transparent calc(50% - .8px),
+            var(--strike) calc(50% - .8px),
+            var(--strike) calc(50% + .8px),
+            transparent calc(50% + .8px));
+        pointer-events:none;
+        -webkit-print-color-adjust:exact;
+        print-color-adjust:exact;
+    }
+    td.blocked .locked{
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        height:100%;
+        min-height:64px;
+        font-size:.7rem;
+        color:var(--muted);
+        text-align:center;
+        padding:.3rem;
+    }
+
+    .empty-hint{
+        background:var(--card);
+        border-left:4px solid var(--brand);
+        padding:1rem 1.2rem;
+        border-radius:0 8px 8px 0;
+        box-shadow:var(--shadow);
+        font-size:.9rem;
+    }
+
+    .legend{
+        display:flex;
+        flex-wrap:wrap;
+        gap:1.2rem;
+        margin-top:1rem;
+        font-size:.8rem;
+        color:var(--muted);
+    }
+    .legend span{display:flex;align-items:center;gap:.4rem}
+    .swatch{width:16px;height:16px;border:1px solid var(--line);border-radius:3px;display:inline-block}
+    .swatch.weekend{background:var(--weekend)}
+    .swatch.blocked{
+        background:var(--blocked);
+        background-image:linear-gradient(to top right,
+            transparent calc(50% - .8px),var(--strike) calc(50% - .8px),
+            var(--strike) calc(50% + .8px),transparent calc(50% + .8px));
+    }
+
+    footer{
+        text-align:center;
+        font-size:.8rem;
+        color:var(--muted);
+        padding:1.5rem;
+    }
+
+    @media (max-width:640px){
+        .shift-editor{grid-template-columns:1fr auto auto}
+        .shift-editor input[type=text]{grid-column:1/-1}
+    }
+
+    /* ---------- Druck ---------- */
+    @page{size:A4 landscape;margin:12mm}
+    @media print{
+        body{background:#fff}
+        header{background:none;color:var(--ink);padding:0 0 1rem;text-align:left;border-bottom:2px solid var(--brand)}
+        header p{opacity:1;color:var(--muted)}
+        .container{padding:0;max-width:none}
+        .toolbar,.panel,footer,.screen-only{display:none!important}
+        .table-wrap{box-shadow:none;overflow:visible}
+        table{min-width:0}
+        th,td{border-color:#b9c4cf}
+        thead th,th.shift{background:none}
+        thead th.weekend,td.cell.weekend{background:none}
+        .week{break-inside:avoid;page-break-inside:avoid;margin-bottom:1.2rem}
+        .entry:empty::before{content:''}
+        .legend{margin-top:.6rem}
+    }
+</style>
+</head>
+<body>
+
+<header>
+    <h1>Schichtplan</h1>
+    <p>Wochenraster – Wochentage &times; Schichten. Dienstag und Mittwoch sind ausgenommen, die Mittelschicht nur am Wochenende.</p>
+</header>
+
+<div class="container">
+
+    <div class="toolbar">
+        <button class="btn primary" id="btn-print">Drucken / PDF</button>
+        <button class="btn" id="btn-csv">CSV exportieren</button>
+        <button class="btn" id="btn-add-week">+ Woche</button>
+        <button class="btn" id="btn-remove-week">&minus; Woche</button>
+        <button class="btn danger" id="btn-clear">Einträge leeren</button>
+        <button class="btn danger" id="btn-reset">Alles zurücksetzen</button>
+    </div>
+
+    <details class="panel">
+        <summary>Schichten &amp; Wochentage anpassen</summary>
+        <div class="panel-body">
+
+            <div class="panel-section">
+                <h3>Wochentage im Plan</h3>
+                <div class="chips" id="day-chips"></div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Schichten</h3>
+                <div id="shift-editors"></div>
+                <button class="btn" id="btn-add-shift" style="margin-top:.8rem">+ Schicht hinzufügen</button>
+            </div>
+
+            <div class="panel-section">
+                <h3>Wochen</h3>
+                <div class="weeks-control">
+                    <button class="btn icon" id="btn-week-minus">&minus;</button>
+                    <span id="weeks-count">1</span>
+                    <button class="btn icon" id="btn-week-plus">+</button>
+                    <span style="color:var(--muted);font-size:.8rem">Das Raster wiederholt sich pro Woche.</span>
+                </div>
+            </div>
+
+        </div>
+    </details>
+
+    <div id="plan"></div>
+
+    <div class="legend">
+        <span class="screen-only"><i class="swatch weekend"></i> Wochenende</span>
+        <span><i class="swatch blocked"></i> Schicht an diesem Tag nicht verfügbar</span>
+        <span class="screen-only">Einträge werden automatisch im Browser gespeichert.</span>
+    </div>
+
+</div>
+
+<footer>Schichtplan &middot; Klick in ein Feld, um Namen einzutragen.</footer>
+
+<script>
+(() => {
+    'use strict';
+
+    const STORAGE_KEY = 'schichtplan.v1';
+
+    const ALL_DAYS = [
+        {id:'mo', label:'Montag',     short:'Mo', weekend:false},
+        {id:'di', label:'Dienstag',   short:'Di', weekend:false},
+        {id:'mi', label:'Mittwoch',   short:'Mi', weekend:false},
+        {id:'do', label:'Donnerstag', short:'Do', weekend:false},
+        {id:'fr', label:'Freitag',    short:'Fr', weekend:false},
+        {id:'sa', label:'Samstag',    short:'Sa', weekend:true},
+        {id:'so', label:'Sonntag',    short:'So', weekend:true}
+    ];
+    const DAY_BY_ID = Object.fromEntries(ALL_DAYS.map(d => [d.id, d]));
+    const ALL_DAY_IDS = ALL_DAYS.map(d => d.id);
+    const WEEKEND_IDS = ALL_DAYS.filter(d => d.weekend).map(d => d.id);
+    const MAX_WEEKS = 12;
+
+    function defaultState(){
+        return {
+            // Dienstag und Mittwoch fallen weg
+            activeDays: ['mo','do','fr','sa','so'],
+            shifts: [
+                {id:'s1', name:'Frühschicht',   start:'10:00', end:'15:00', days:[...ALL_DAY_IDS]},
+                {id:'s2', name:'Mittelschicht', start:'12:00', end:'17:00', days:[...WEEKEND_IDS]},
+                {id:'s3', name:'Spätschicht',   start:'15:00', end:'20:00', days:[...ALL_DAY_IDS]}
+            ],
+            weeks: 1,
+            weekLabels: {},
+            entries: {}
+        };
+    }
+
+    /* ---------- Zustand ---------- */
+
+    const isTime = v => typeof v === 'string' && /^([01]\d|2[0-3]):[0-5]\d$/.test(v);
+
+    function loadState(){
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if(!raw) return defaultState();
+            const p = JSON.parse(raw);
+            if(!p || !Array.isArray(p.shifts) || !Array.isArray(p.activeDays)) return defaultState();
+            return {
+                activeDays: ALL_DAY_IDS.filter(id => p.activeDays.includes(id)),
+                shifts: p.shifts.map((s, i) => ({
+                    id:    String(s && s.id ? s.id : 's' + (i + 1)),
+                    name:  s && typeof s.name === 'string' ? s.name : '',
+                    start: isTime(s && s.start) ? s.start : '08:00',
+                    end:   isTime(s && s.end)   ? s.end   : '16:00',
+                    days:  Array.isArray(s && s.days) ? ALL_DAY_IDS.filter(id => s.days.includes(id)) : [...ALL_DAY_IDS]
+                })),
+                weeks: Math.min(Math.max(parseInt(p.weeks, 10) || 1, 1), MAX_WEEKS),
+                weekLabels: p.weekLabels && typeof p.weekLabels === 'object' ? p.weekLabels : {},
+                entries: p.entries && typeof p.entries === 'object' ? p.entries : {}
+            };
+        } catch(e){
+            return defaultState();
+        }
+    }
+
+    function save(){
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch(e){}
+    }
+
+    let state = loadState();
+
+    /* ---------- Hilfsfunktionen ---------- */
+
+    const entryKey  = (week, shiftId, dayId) => week + '|' + shiftId + '|' + dayId;
+    const activeDayObjects = () => state.activeDays.map(id => DAY_BY_ID[id]);
+    const isBlocked = (shift, dayId) => !shift.days.includes(dayId);
+    const newShiftId = () => 's' + Date.now().toString(36) + Math.floor(Math.random() * 1000).toString(36);
+
+    function durationLabel(shift){
+        const [sh, sm] = shift.start.split(':').map(Number);
+        const [eh, em] = shift.end.split(':').map(Number);
+        let minutes = (eh * 60 + em) - (sh * 60 + sm);
+        if(minutes <= 0) minutes += 24 * 60;          // über Mitternacht
+        const hours = minutes / 60;
+        return hours.toLocaleString('de-DE', {maximumFractionDigits: 2}) + ' Std';
+    }
+
+    function availabilityBadge(shift){
+        const active = state.activeDays;
+        const open = active.filter(id => shift.days.includes(id));
+        if(open.length === active.length) return '';                 // überall offen
+        if(open.length === 0) return 'an keinem aktiven Tag';
+        return 'nur ' + open.map(id => DAY_BY_ID[id].short).join(' · ');
+    }
+
+    const weekLabel = week => state.weekLabels[week] || ('Woche ' + week);
+
+    /* ---------- Plan rendern ---------- */
+
+    const planEl = document.getElementById('plan');
+
+    function renderPlan(){
+        planEl.textContent = '';
+
+        if(state.activeDays.length === 0 || state.shifts.length === 0){
+            const hint = document.createElement('div');
+            hint.className = 'empty-hint';
+            hint.textContent = 'Kein Raster vorhanden – bitte oben mindestens einen Wochentag und eine Schicht aktivieren.';
+            planEl.appendChild(hint);
+            return;
+        }
+
+        for(let week = 1; week <= state.weeks; week++){
+            planEl.appendChild(renderWeek(week));
+        }
+    }
+
+    function renderWeek(week){
+        const days = activeDayObjects();
+
+        const section = document.createElement('section');
+        section.className = 'week';
+
+        const title = document.createElement('h2');
+        title.className = 'week-title';
+        title.textContent = weekLabel(week);
+        title.contentEditable = 'true';
+        title.spellcheck = false;
+        title.title = 'Bezeichnung anpassen, z. B. „KW 34“';
+        title.addEventListener('input', () => {
+            state.weekLabels[week] = title.textContent.trim();
+            save();
+        });
+        section.appendChild(title);
+
+        const wrap = document.createElement('div');
+        wrap.className = 'table-wrap';
+
+        const table = document.createElement('table');
+
+        // Kopfzeile: Wochentage
+        const thead = document.createElement('thead');
+        const headRow = document.createElement('tr');
+        const corner = document.createElement('th');
+        corner.className = 'corner';
+        corner.scope = 'col';
+        corner.textContent = 'Schicht';
+        headRow.appendChild(corner);
+
+        days.forEach(day => {
+            const th = document.createElement('th');
+            th.scope = 'col';
+            th.textContent = day.label;
+            if(day.weekend) th.classList.add('weekend');
+            headRow.appendChild(th);
+        });
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        // Zeilen: Schichten
+        const tbody = document.createElement('tbody');
+        state.shifts.forEach(shift => {
+            const row = document.createElement('tr');
+
+            const rowHead = document.createElement('th');
+            rowHead.className = 'shift';
+            rowHead.scope = 'row';
+
+            const time = document.createElement('span');
+            time.className = 'time';
+            time.textContent = shift.start + ' – ' + shift.end;
+            rowHead.appendChild(time);
+
+            if(shift.name){
+                const name = document.createElement('span');
+                name.className = 'name';
+                name.textContent = shift.name;
+                rowHead.appendChild(name);
+            }
+
+            const meta = document.createElement('span');
+            meta.className = 'meta';
+            meta.textContent = durationLabel(shift);
+            rowHead.appendChild(meta);
+
+            const badgeText = availabilityBadge(shift);
+            if(badgeText){
+                const badge = document.createElement('span');
+                badge.className = 'badge';
+                badge.textContent = badgeText;
+                rowHead.appendChild(badge);
+            }
+
+            row.appendChild(rowHead);
+
+            days.forEach(day => {
+                row.appendChild(renderCell(week, shift, day));
+            });
+
+            tbody.appendChild(row);
+        });
+        table.appendChild(tbody);
+
+        wrap.appendChild(table);
+        section.appendChild(wrap);
+        return section;
+    }
+
+    function renderCell(week, shift, day){
+        const td = document.createElement('td');
+        td.className = 'cell';
+        if(day.weekend) td.classList.add('weekend');
+
+        if(isBlocked(shift, day.id)){
+            td.classList.add('blocked');
+            td.setAttribute('aria-label',
+                shift.start + ' – ' + shift.end + ' am ' + day.label + ': nicht verfügbar');
+            const locked = document.createElement('div');
+            locked.className = 'locked';
+            locked.textContent = 'nicht verfügbar';
+            td.appendChild(locked);
+            return td;
+        }
+
+        const key = entryKey(week, shift.id, day.id);
+        const entry = document.createElement('div');
+        entry.className = 'entry';
+        entry.contentEditable = 'true';
+        entry.spellcheck = false;
+        entry.dataset.key = key;
+        entry.setAttribute('role', 'textbox');
+        entry.setAttribute('aria-label',
+            weekLabel(week) + ', ' + day.label + ', ' + shift.start + ' – ' + shift.end);
+        entry.textContent = state.entries[key] || '';
+
+        entry.addEventListener('input', () => {
+            if(!entry.textContent.trim()) entry.innerHTML = '';    // Platzhalter reaktivieren
+            const value = entry.innerText.replace(/\u00a0/g, ' ').replace(/\s+$/, '');
+            if(value) state.entries[key] = value;
+            else delete state.entries[key];
+            save();
+        });
+
+        entry.addEventListener('paste', event => {
+            event.preventDefault();
+            const text = (event.clipboardData || window.clipboardData).getData('text/plain');
+            if(!document.execCommand('insertText', false, text)){
+                const selection = window.getSelection();
+                if(selection && selection.rangeCount){
+                    const range = selection.getRangeAt(0);
+                    range.deleteContents();
+                    range.insertNode(document.createTextNode(text));
+                    range.collapse(false);
+                }
+            }
+            entry.dispatchEvent(new Event('input'));
+        });
+
+        td.appendChild(entry);
+        return td;
+    }
+
+    /* ---------- Konfiguration rendern ---------- */
+
+    const dayChipsEl = document.getElementById('day-chips');
+    const shiftEditorsEl = document.getElementById('shift-editors');
+    const weeksCountEl = document.getElementById('weeks-count');
+
+    function renderConfig(){
+        renderDayChips();
+        renderShiftEditors();
+        weeksCountEl.textContent = String(state.weeks);
+    }
+
+    function renderDayChips(){
+        dayChipsEl.textContent = '';
+        ALL_DAYS.forEach(day => {
+            const chip = document.createElement('button');
+            chip.type = 'button';
+            chip.className = 'chip' + (state.activeDays.includes(day.id) ? ' on' : '');
+            chip.textContent = day.label;
+            chip.addEventListener('click', () => {
+                if(state.activeDays.includes(day.id)){
+                    state.activeDays = state.activeDays.filter(id => id !== day.id);
+                } else {
+                    state.activeDays = ALL_DAY_IDS.filter(
+                        id => id === day.id || state.activeDays.includes(id));
+                }
+                save();
+                renderConfig();
+                renderPlan();
+            });
+            dayChipsEl.appendChild(chip);
+        });
+    }
+
+    function renderShiftEditors(){
+        shiftEditorsEl.textContent = '';
+
+        state.shifts.forEach((shift, index) => {
+            const box = document.createElement('div');
+            box.className = 'shift-editor';
+
+            const name = document.createElement('input');
+            name.type = 'text';
+            name.value = shift.name;
+            name.placeholder = 'Bezeichnung (optional)';
+            name.setAttribute('aria-label', 'Bezeichnung der Schicht');
+            name.addEventListener('input', () => {
+                shift.name = name.value;
+                save();
+                renderPlan();
+            });
+            box.appendChild(name);
+
+            const start = timeInput(shift, 'start', 'Beginn');
+            const end = timeInput(shift, 'end', 'Ende');
+            box.appendChild(start);
+            box.appendChild(end);
+
+            const tools = document.createElement('div');
+            tools.className = 'tools';
+            tools.appendChild(iconButton('▲', 'Nach oben', index > 0, () => moveShift(index, -1)));
+            tools.appendChild(iconButton('▼', 'Nach unten', index < state.shifts.length - 1, () => moveShift(index, 1)));
+            tools.appendChild(iconButton('✕', 'Schicht löschen', true, () => removeShift(index)));
+            box.appendChild(tools);
+
+            const days = document.createElement('div');
+            days.className = 'days';
+            const label = document.createElement('span');
+            label.className = 'label';
+            label.textContent = 'verfügbar an:';
+            days.appendChild(label);
+
+            ALL_DAYS.forEach(day => {
+                const chip = document.createElement('button');
+                chip.type = 'button';
+                const inPlan = state.activeDays.includes(day.id);
+                chip.className = 'chip'
+                    + (shift.days.includes(day.id) ? ' on' : '')
+                    + (inPlan ? '' : ' off-day');
+                chip.textContent = day.short;
+                chip.title = inPlan
+                    ? day.label
+                    : day.label + ' – im Plan ausgeblendet';
+                chip.addEventListener('click', () => {
+                    if(shift.days.includes(day.id)){
+                        shift.days = shift.days.filter(id => id !== day.id);
+                    } else {
+                        shift.days = ALL_DAY_IDS.filter(
+                            id => id === day.id || shift.days.includes(id));
+                    }
+                    chip.classList.toggle('on', shift.days.includes(day.id));
+                    save();
+                    renderPlan();
+                });
+                days.appendChild(chip);
+            });
+
+            box.appendChild(days);
+            shiftEditorsEl.appendChild(box);
+        });
+    }
+
+    function timeInput(shift, field, ariaLabel){
+        const input = document.createElement('input');
+        input.type = 'time';
+        input.value = shift[field];
+        input.step = 300;
+        input.setAttribute('aria-label', ariaLabel);
+        input.addEventListener('change', () => {
+            if(isTime(input.value)){
+                shift[field] = input.value;
+                save();
+                renderPlan();
+            } else {
+                input.value = shift[field];
+            }
+        });
+        return input;
+    }
+
+    function iconButton(symbol, title, enabled, onClick){
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn icon';
+        button.textContent = symbol;
+        button.title = title;
+        button.setAttribute('aria-label', title);
+        button.disabled = !enabled;
+        if(!enabled) button.style.opacity = '.35';
+        else button.addEventListener('click', onClick);
+        return button;
+    }
+
+    function moveShift(index, direction){
+        const target = index + direction;
+        if(target < 0 || target >= state.shifts.length) return;
+        const [shift] = state.shifts.splice(index, 1);
+        state.shifts.splice(target, 0, shift);
+        save();
+        renderConfig();
+        renderPlan();
+    }
+
+    function removeShift(index){
+        const shift = state.shifts[index];
+        if(!confirm('Schicht „' + shift.start + ' – ' + shift.end + '“ mit allen Einträgen löschen?')) return;
+        state.shifts.splice(index, 1);
+        Object.keys(state.entries).forEach(key => {
+            if(key.split('|')[1] === shift.id) delete state.entries[key];
+        });
+        save();
+        renderConfig();
+        renderPlan();
+    }
+
+    function addShift(){
+        state.shifts.push({
+            id: newShiftId(),
+            name: '',
+            start: '08:00',
+            end: '13:00',
+            days: [...ALL_DAY_IDS]
+        });
+        save();
+        renderConfig();
+        renderPlan();
+    }
+
+    function setWeeks(count){
+        const next = Math.min(Math.max(count, 1), MAX_WEEKS);
+        if(next === state.weeks) return;
+        if(next < state.weeks && !confirm('Woche entfernen? Die Einträge dieser Woche gehen verloren.')) return;
+        for(let week = next + 1; week <= state.weeks; week++){
+            delete state.weekLabels[week];
+            Object.keys(state.entries).forEach(key => {
+                if(key.split('|')[0] === String(week)) delete state.entries[key];
+            });
+        }
+        state.weeks = next;
+        save();
+        renderConfig();
+        renderPlan();
+    }
+
+    /* ---------- Export ---------- */
+
+    function csvField(value){
+        const text = String(value == null ? '' : value);
+        return /[";\r\n]/.test(text) ? '"' + text.replace(/"/g, '""') + '"' : text;
+    }
+
+    function exportCsv(){
+        const days = activeDayObjects();
+        const rows = [];
+
+        for(let week = 1; week <= state.weeks; week++){
+            rows.push([weekLabel(week), ...days.map(day => day.label)]);
+            state.shifts.forEach(shift => {
+                const row = [shift.start + ' - ' + shift.end + (shift.name ? ' (' + shift.name + ')' : '')];
+                days.forEach(day => {
+                    row.push(isBlocked(shift, day.id)
+                        ? 'nicht verfügbar'
+                        : (state.entries[entryKey(week, shift.id, day.id)] || '').replace(/\n/g, ' / '));
+                });
+                rows.push(row);
+            });
+            rows.push([]);
+        }
+
+        const csv = '\uFEFF' + rows.map(row => row.map(csvField).join(';')).join('\r\n');
+        const blob = new Blob([csv], {type: 'text/csv;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'schichtplan.csv';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+    }
+
+    /* ---------- Werkzeugleiste ---------- */
+
+    document.getElementById('btn-print').addEventListener('click', () => window.print());
+    document.getElementById('btn-csv').addEventListener('click', exportCsv);
+    document.getElementById('btn-add-week').addEventListener('click', () => setWeeks(state.weeks + 1));
+    document.getElementById('btn-remove-week').addEventListener('click', () => setWeeks(state.weeks - 1));
+    document.getElementById('btn-week-plus').addEventListener('click', () => setWeeks(state.weeks + 1));
+    document.getElementById('btn-week-minus').addEventListener('click', () => setWeeks(state.weeks - 1));
+    document.getElementById('btn-add-shift').addEventListener('click', addShift);
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+        if(!confirm('Alle Einträge im Plan löschen? Schichten und Wochentage bleiben erhalten.')) return;
+        state.entries = {};
+        save();
+        renderPlan();
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', () => {
+        if(!confirm('Plan komplett zurücksetzen – Schichten, Wochentage und Einträge?')) return;
+        state = defaultState();
+        save();
+        renderConfig();
+        renderPlan();
+    });
+
+    /* ---------- Start ---------- */
+
+    renderConfig();
+    renderPlan();
+})();
+</script>
+
+</body>
+</html>
