@@ -231,6 +231,41 @@ if [ "$MIT_COOLIFY" -eq 1 ]; then
     echo "Installer liegt unter /root/coolify-install.sh und wird jetzt ausgefuehrt."
     bash /root/coolify-install.sh
   fi
+
+  # -------------------------------------------------------------------------
+  info "Coolify-Port 8000 von aussen sperren"
+  # -------------------------------------------------------------------------
+  # Docker setzt seine DNAT-Regeln VOR die von ufw. Ein veroeffentlichter
+  # Container-Port ist deshalb trotz "ufw deny" aus dem Internet erreichbar,
+  # und die Coolify-Registrierung steht offen, bis das erste Konto existiert.
+  # Wer sie zuerst findet, wird Administrator.
+  #
+  # Der Hebel ist die DOCKER-USER-Kette: sie liegt im FORWARD-Pfad und trifft
+  # damit nur Verbindungen von aussen. Ein SSH-Tunnel landet auf 127.0.0.1 und
+  # laeuft ueber den docker-proxy daran vorbei.
+  #
+  # Als systemd-Unit statt iptables-persistent: die Regel wird nach jedem
+  # Docker-Start neu gesetzt und ueberlebt Coolify-Updates, ohne dass dabei
+  # Dockers eigene Regeln eingefroren werden.
+  cat > /etc/systemd/system/coolify-port-sperre.service <<'UNITEOF'
+[Unit]
+Description=Coolify-Port 8000 fuer Zugriffe von aussen sperren
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# -C prueft, ob die Regel schon steht; nur dann wird sie eingefuegt.
+ExecStart=/bin/sh -c '/usr/sbin/iptables -C DOCKER-USER -p tcp --dport 8000 -j DROP 2>/dev/null || /usr/sbin/iptables -I DOCKER-USER -p tcp --dport 8000 -j DROP'
+ExecStart=/bin/sh -c '/usr/sbin/ip6tables -C DOCKER-USER -p tcp --dport 8000 -j DROP 2>/dev/null || /usr/sbin/ip6tables -I DOCKER-USER -p tcp --dport 8000 -j DROP'
+
+[Install]
+WantedBy=multi-user.target
+UNITEOF
+  systemctl daemon-reload
+  systemctl enable --now coolify-port-sperre.service >/dev/null
+  gruen "Port 8000 nur noch ueber SSH-Tunnel erreichbar"
 fi
 
 # ---------------------------------------------------------------------------
@@ -257,10 +292,11 @@ ENDEEOF
 
 if [ "$MIT_COOLIFY" -eq 1 ]; then
 cat <<COOLEOF
-4. Coolify oeffnen und das erste Konto anlegen, am besten durch einen Tunnel
-   statt offen im Netz:
+4. Coolify oeffnen und SOFORT das erste Konto anlegen. Port 8000 ist von
+   aussen gesperrt, der Weg fuehrt durch einen Tunnel:
        ssh -L 8000:localhost:8000 tho2
    dann im Browser  http://localhost:8000
+   Wer sich dort zuerst registriert, wird Administrator der Instanz.
 
 COOLEOF
 fi
