@@ -240,13 +240,18 @@ if [ "$MIT_COOLIFY" -eq 1 ]; then
   # und die Coolify-Registrierung steht offen, bis das erste Konto existiert.
   # Wer sie zuerst findet, wird Administrator.
   #
-  # Der Hebel ist die DOCKER-USER-Kette: sie liegt im FORWARD-Pfad und trifft
-  # damit nur Verbindungen von aussen. Ein SSH-Tunnel landet auf 127.0.0.1 und
-  # laeuft ueber den docker-proxy daran vorbei.
+  # ACHTUNG, ehrlich gemessen: Diese Regel hat den Port im Test NICHT
+  # geschlossen. Sie stand nachweislich in DOCKER-USER, und curl von aussen
+  # bekam weiter ein 302. Verlass dich nicht darauf.
   #
-  # Als systemd-Unit statt iptables-persistent: die Regel wird nach jedem
-  # Docker-Start neu gesetzt und ueberlebt Coolify-Updates, ohne dass dabei
-  # Dockers eigene Regeln eingefroren werden.
+  # Die Ebene, auf die Verlass ist, liegt ausserhalb des Systems: eine
+  # Hetzner Cloud Firewall, die eingehend nur 22, 80 und 443 durchlaesst.
+  # Die legst du im Panel an, dieses Skript kann das nicht.
+  #
+  # Die Regel hier bleibt als zweite Ebene: sie kostet nichts und greift,
+  # falls der Verkehr doch ueber den FORWARD-Pfad laeuft. Als systemd-Unit
+  # statt iptables-persistent, damit Dockers eigene Regeln nicht eingefroren
+  # werden.
   cat > /etc/systemd/system/coolify-port-sperre.service <<'UNITEOF'
 [Unit]
 Description=Coolify-Port 8000 fuer Zugriffe von aussen sperren
@@ -265,7 +270,7 @@ WantedBy=multi-user.target
 UNITEOF
   systemctl daemon-reload
   systemctl enable --now coolify-port-sperre.service >/dev/null
-  gruen "Port 8000 nur noch ueber SSH-Tunnel erreichbar"
+  gruen "DOCKER-USER-Regel gesetzt (zweite Ebene, siehe Punkt 4 unten)"
 fi
 
 # ---------------------------------------------------------------------------
@@ -292,8 +297,15 @@ ENDEEOF
 
 if [ "$MIT_COOLIFY" -eq 1 ]; then
 cat <<COOLEOF
-4. Coolify oeffnen und SOFORT das erste Konto anlegen. Port 8000 ist von
-   aussen gesperrt, der Weg fuehrt durch einen Tunnel:
+4. WICHTIG: Im Hetzner-Panel eine Cloud Firewall anlegen und dem Server
+   zuweisen. Eingehend nur TCP 22, 80 und 443 erlauben, SSH nicht vergessen.
+   Coolify veroeffentlicht Port 8000, und ufw haelt das nicht auf - Docker
+   schreibt seine Regeln davor. Nur die Cloud Firewall sitzt vor dem Server.
+
+   Danach von aussen pruefen, es muss 000 kommen:
+       curl -sS --max-time 5 -o /dev/null -w "%{http_code}\n" http://<ip>:8000/
+
+5. Coolify oeffnen und SOFORT das erste Konto anlegen, durch einen Tunnel:
        ssh -L 8000:localhost:8000 tho2
    dann im Browser  http://localhost:8000
    Wer sich dort zuerst registriert, wird Administrator der Instanz.

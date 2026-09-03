@@ -74,19 +74,21 @@ Danach vergibst du in Coolify jede Adresse selbst, ohne noch einmal an den DNS z
 
 Kundenprojekte, die produktiv gehen, bekommen später eine eigene Domain. Der Wildcard ist für die Werkstatt, nicht fürs Schaufenster.
 
-## Warum ufw allein nicht reicht
+## Die Firewall gehört vor den Server, nicht auf ihn
 
-Das hat uns beim Aufsetzen fast einen offenen Server gekostet, deshalb steht es hier eigens.
+Das ist die teuerste Lektion aus dem Aufsetzen, deshalb steht sie hier eigens und mit dem Irrweg dazu.
 
-Docker schreibt seine eigenen iptables-Regeln, und die liegen vor denen von `ufw`. Ein Container, der einen Port veröffentlicht, ist damit aus dem Internet erreichbar — auch wenn `ufw status` diesen Port gar nicht aufführt.
+Docker schreibt seine eigenen iptables-Regeln, und die liegen vor denen von `ufw`. Ein Container, der einen Port veröffentlicht, ist damit aus dem Internet erreichbar — auch wenn `ufw status` diesen Port gar nicht aufführt. Coolify veröffentlicht seine Oberfläche auf Port 8000, und solange dort kein Konto existiert, steht die Registrierung offen. Wer sie zuerst findet, wird Administrator. Hetzner-Adressbereiche werden ununterbrochen abgescannt.
 
-Bei Coolify trifft das die Verwaltungsoberfläche auf Port 8000. Solange dort kein Konto existiert, steht die Registrierung offen, und wer sie zuerst findet, wird Administrator der Instanz. Hetzner-Adressbereiche werden ununterbrochen abgescannt.
+Der erste Versuch war eine DROP-Regel in der Kette `DOCKER-USER`. Die Regel stand nachweislich, und der Port blieb trotzdem offen: `curl` von außen bekam weiter ein 302. Warum sie nicht greift, ist ungeklärt — die naheliegende Erklärung über nftables ließ sich widerlegen, es sind die iptables-Kompatibilitätstabellen.
 
-Der Hebel dagegen ist die Kette `DOCKER-USER`. Sie liegt im Weiterleitungspfad und trifft deshalb nur Verbindungen von außen; ein SSH-Tunnel landet auf 127.0.0.1 und läuft daran vorbei.
+Die Lehre daraus ist nicht, die nächste Regel eine Ebene tiefer zu suchen. Sie ist, die Firewall dorthin zu legen, wo Docker sie nicht erreichen kann: in die **Hetzner Cloud Firewall**. Die sitzt vor der Netzwerkkarte, außerhalb des Betriebssystems. Was sie verwirft, kommt am Server nie an.
 
-Das Bootstrap-Skript legt dafür eine systemd-Unit an statt `iptables-persistent` zu installieren. Die Regel wird nach jedem Docker-Start neu gesetzt, überlebt Coolify-Updates und friert dabei Dockers eigene Regeln nicht ein.
+Eingehend erlaubt sind dort genau drei Ports: 22 für SSH, 80 und 443 für den Reverse Proxy. Alles andere fällt weg, auch die 8000. Die Coolify-Oberfläche erreichst du danach über einen SSH-Tunnel vom Mac.
 
-Auf Dauer ist der bessere Weg, Coolify eine eigene Domain zu geben. Dann läuft die Oberfläche über Traefik auf 443 mit gültigem Zertifikat, und Port 8000 wird gar nicht mehr gebraucht.
+`ufw` und die systemd-Unit bleiben trotzdem stehen. Sie schaden nicht und greifen für alles, was nicht durch Docker läuft. Verlassen kann man sich bei veröffentlichten Container-Ports nur auf die Cloud Firewall.
+
+Auf Dauer bekommt Coolify eine eigene Domain. Dann läuft die Oberfläche über Traefik auf 443 mit gültigem Zertifikat, und der Tunnel entfällt.
 
 ## Sicherheit, so viel wie nötig
 
@@ -112,7 +114,7 @@ Ein Backup, das nie zurückgespielt wurde, ist eine Vermutung. Einmal im Quartal
 
 Erstens den bestehenden Server inventarisieren. Das Skript `scripts/server1-inventar.sh` liest nur, ändert nichts und gibt keine Passwörter aus — Ausgabe hierher, dann weiß ich, worauf Server 2 aufsetzen muss.
 
-Zweitens den neuen Server bestellen. Hetzner Cloud, CX23, Ubuntu 24.04, Standort Nürnberg, Backups aktiviert, dein SSH-Schlüssel ausgewählt und angehakt.
+Zweitens den neuen Server bestellen. Hetzner Cloud, CX23, Ubuntu 24.04, Standort Nürnberg, Backups aktiviert, dein SSH-Schlüssel ausgewählt und angehakt. Gleich mit dabei eine Cloud Firewall, die eingehend nur 22, 80 und 443 durchlässt.
 
 Drittens das Bootstrap-Skript laufen lassen. Es läuft einmal als root und richtet Benutzer, Firewall, Docker und auf Wunsch Coolify ein.
 
