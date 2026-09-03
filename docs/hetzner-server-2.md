@@ -100,6 +100,24 @@ Sicherheitsupdates installiert der Server selbstständig, dafür sorgen die unat
 
 Die Coolify-Oberfläche gehört nicht offen ins Netz. Entweder du bindest sie an Tailscale, oder du erreichst sie über einen SSH-Tunnel.
 
+## So kommst du ran
+
+Auf dem Mac steht in `~/.ssh/config` ein Eintrag, der den Tunnel gleich mitbringt:
+
+```
+Host tho2
+    HostName <ip>
+    User thomas
+    IdentityFile ~/.ssh/id_ed25519
+    LocalForward 8000 localhost:8000
+```
+
+Damit genügt `ssh tho2`. Solange das Fenster offen ist, erreichst du Coolify im Browser unter `http://localhost:8000`.
+
+Zwei Stolperstellen, beide beim Aufsetzen passiert. Der Tunnelbefehl gehört auf den Mac, nicht auf den Server — dort versucht die Maschine sich bei sich selbst anzumelden und findet keinen privaten Schlüssel. Und am Prompt siehst du, wo du gerade bist: der Mac-Benutzername steht vorne, auf dem Server steht `thomas@ubuntu-...`.
+
+Jedes Gerät bekommt seinen eigenen Schlüssel, der private wandert nie von einem Rechner zum anderen. Hetzner spielt Schlüssel außerdem nur beim Erstellen des Servers ein. Ein später im Panel hinterlegter landet **nicht** auf der laufenden Maschine — der wird über den bestehenden Zugang nach `~/.ssh/authorized_keys` nachgetragen.
+
 ## Backups, weil Snapshots keine sind
 
 Hetzner bietet automatische Backups für einen Aufschlag von zwanzig Prozent. Die schaltest du bei der Bestellung mit ein, sie retten dich, wenn die ganze Maschine hinüber ist.
