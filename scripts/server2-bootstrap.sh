@@ -2,7 +2,7 @@
 #
 # server2-bootstrap.sh — richtet einen frischen Hetzner-Cloud-Server ein.
 #
-# Getestet gegen Ubuntu 24.04 LTS. Laeuft einmalig als root, direkt nach der
+# Fuer Ubuntu 24.04 und 26.04 LTS. Laeuft einmalig als root, direkt nach der
 # Bestellung. Ein zweiter Lauf ist ungefaehrlich, das Skript ist idempotent.
 #
 #   ssh root@<neue-ip>
@@ -22,7 +22,7 @@ set -euo pipefail
 BENUTZER=""
 MIT_COOLIFY=0
 ZEITZONE="Europe/Berlin"
-SWAP_GB=2
+SWAP_GB=auto   # auto = nach RAM bemessen; oder feste Zahl in GB, 0 schaltet ab
 
 rot()  { printf '\033[31m%s\033[0m\n' "$*"; }
 gruen(){ printf '\033[32m%s\033[0m\n' "$*"; }
@@ -150,6 +150,15 @@ sed -i 's|^//\?Unattended-Upgrade::Automatic-Reboot .*|Unattended-Upgrade::Autom
 systemctl enable --now unattended-upgrades >/dev/null
 
 # ---------------------------------------------------------------------------
+# Auf kleinen Maschinen federt Swap die Spitzen von Docker-Builds ab. Ein
+# Node-Build zieht schnell 2 GB, und der OOM-Killer trifft dann irgendeinen
+# Container, nicht den Build.
+if [ "$SWAP_GB" = "auto" ]; then
+  RAM_MB=$(awk '/MemTotal/ {print int($2/1024)}' /proc/meminfo)
+  if [ "$RAM_MB" -le 4500 ]; then SWAP_GB=4; else SWAP_GB=2; fi
+  echo "RAM: ${RAM_MB} MB -> Swap automatisch auf ${SWAP_GB} GB gesetzt"
+fi
+
 info "Swap anlegen (${SWAP_GB} GB)"
 # ---------------------------------------------------------------------------
 if swapon --show | grep -q . ; then
@@ -196,6 +205,21 @@ if [ ! -f /etc/docker/daemon.json ]; then
 DJEOF
   systemctl restart docker
 fi
+
+# ---------------------------------------------------------------------------
+info "Woechentliches Aufraeumen einrichten"
+# ---------------------------------------------------------------------------
+# Docker-Images und Build-Caches wachsen still vor sich hin. Auf einer 40-GB-
+# Platte ist das nach ein paar Monaten das Problem. Geloescht wird nur, was
+# aelter als sieben Tage und von keinem Container belegt ist.
+cat > /etc/cron.weekly/docker-aufraeumen <<'CRONEOF'
+#!/bin/sh
+# von server2-bootstrap.sh angelegt
+docker system prune -f --filter "until=168h" >> /var/log/docker-aufraeumen.log 2>&1
+docker builder prune -f --filter "unused-for=168h" >> /var/log/docker-aufraeumen.log 2>&1
+CRONEOF
+chmod +x /etc/cron.weekly/docker-aufraeumen
+gruen "laeuft woechentlich, Protokoll in /var/log/docker-aufraeumen.log"
 
 # ---------------------------------------------------------------------------
 if [ "$MIT_COOLIFY" -eq 1 ]; then

@@ -24,13 +24,19 @@ Wo Echtdaten von Kundinnen und Kunden ins Spiel kommen, braucht es vorher einen 
 
 ## Welche Maschine
 
-Hetzner Cloud, Standort Nürnberg oder Falkenstein. Beide liegen in Deutschland, damit erübrigt sich die Diskussion über Drittlandtransfer.
+Hetzner Cloud, Standort Falkenstein. Deutschland, damit erübrigt sich die Diskussion über Drittlandtransfer.
 
-Empfehlung ist ein CX32 mit vier vCPU, acht Gigabyte RAM und 80 Gigabyte Platte, Größenordnung sieben Euro im Monat. Die Preise bitte im Hetzner-Panel gegenprüfen, meine Zahlen sind nicht tagesaktuell.
+Es wird ein CX23 aus der Kategorie Cost-Optimized: zwei vCPU, vier Gigabyte RAM, 40 Gigabyte SSD, 20 Terabyte Traffic für 5,49 Euro im Monat. Mit IPv4 und den zwanzig Prozent für Backups landet die Rechnung bei rund sieben Euro.
 
-Acht Gigabyte klingen nach viel für ein paar kleine Web-Apps. Coolify belegt allein rund zwei davon, und jede Datenbank kommt obendrauf — mit vier Gigabyte wird es schnell eng, und Nachrüsten kostet einen Neustart.
+Geplant war ursprünglich der größere CX33 mit acht Gigabyte. Der ist in Deutschland derzeit nicht buchbar — die Cost-Optimized-Reihe läuft auf älterer Hardware mit begrenzten Kontingenten, und im September 2026 war an keinem deutschen Standort mehr als der CX23 frei.
 
-Betriebssystem ist Ubuntu 24.04 LTS. Kein Grund für etwas Exotisches, die Sicherheitsupdates laufen bis 2029.
+Vier Gigabyte reichen zum Start, sind aber die untere Kante. Coolify belegt allein rund zwei davon, und ein Node-Build zieht schnell weitere zwei. Deshalb legt das Bootstrap-Skript auf Maschinen mit vier Gigabyte oder weniger automatisch vier Gigabyte Swap an statt der sonst üblichen zwei.
+
+Die 40 Gigabyte Platte sind der zweite enge Punkt. Docker-Images und Build-Caches wachsen still vor sich hin, deshalb räumt ein wöchentlicher Cron-Job auf, was älter als sieben Tage ist und von keinem Container belegt wird.
+
+Aufrüsten geht später per Klick, sobald der CX33 wieder verfügbar ist. CPU und RAM lassen sich in beide Richtungen ändern, die Platte wächst dabei mit und schrumpft nie wieder.
+
+Betriebssystem ist Ubuntu 24.04 LTS. Die 26.04 wäre auch gegangen — Docker führt den Codenamen `resolute` im Repo und Coolifys Installer prüft die Version gar nicht. Bei 24.04 bezieht sich nur jede Anleitung und jeder Forenbeitrag auf dieselbe Version, und die Sicherheitsupdates laufen bis 2029.
 
 ## Coolify als Bedienoberfläche
 
@@ -92,7 +98,7 @@ Ein Backup, das nie zurückgespielt wurde, ist eine Vermutung. Einmal im Quartal
 
 Erstens den bestehenden Server inventarisieren. Das Skript `scripts/server1-inventar.sh` liest nur, ändert nichts und gibt keine Passwörter aus — Ausgabe hierher, dann weiß ich, worauf Server 2 aufsetzen muss.
 
-Zweitens den neuen Server bestellen. Hetzner Cloud, CX32, Ubuntu 24.04, Standort Nürnberg, Backups aktiviert, dein SSH-Schlüssel ausgewählt.
+Zweitens den neuen Server bestellen. Hetzner Cloud, CX23, Ubuntu 24.04, Standort Falkenstein, Backups aktiviert, dein SSH-Schlüssel ausgewählt und angehakt.
 
 Drittens das Bootstrap-Skript laufen lassen. Es läuft einmal als root und richtet Benutzer, Firewall, Docker und auf Wunsch Coolify ein.
 
