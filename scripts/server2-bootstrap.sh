@@ -291,8 +291,9 @@ Server steht. Naechste Schritte vom MacBook aus:
            IdentityFile ~/.ssh/id_ed25519
    Danach genuegt: ssh tho2
 
-3. DNS bei GoDaddy setzen:
-       *.lab.thomas-perr.de   A   $IP
+3. DNS beim Domain-Anbieter setzen, Wildcard-A-Record auf $IP.
+   Bei GoDaddy gehoert ins Namensfeld NUR der Teil vor der Domain,
+   also z.B. "*.lab" und nicht "*.lab.beispiel.de".
 ENDEEOF
 
 if [ "$MIT_COOLIFY" -eq 1 ]; then

@@ -1,26 +1,38 @@
-# Zweiter Hetzner-Server: eigener Maschinenraum neben dem Vereinsserver
+# Der BWS-Server: eigene Maschine für die Vereins-Apps
 
-Stand: 3. September 2026. Entwurf zur Entscheidung, noch nichts bestellt.
+Stand: 3. September 2026. Der Server läuft, die Apps ziehen noch um.
+
+## Korrektur zur ersten Fassung
+
+Die erste Version dieses Dokuments hatte die Richtung falsch herum. Sie beschrieb den neuen Server als Maschine für Thomas Perrs freiberufliche Projekte, getrennt von einem bestehenden Vereinsserver.
+
+Tatsächlich ist es umgekehrt. Die BWS-Apps liegen bisher auf Thomas Perrs privatem Server, und **der neue Server ist der Vereinsserver**. Dorthin ziehen sie um. Wer die frühere Fassung gelesen hat, sollte diesen Absatz kennen.
 
 ## Warum die Trennung nicht nur Geschmackssache ist
 
-Auf dem bestehenden Server liegen SEPA-Mandate, Einwilligungen von Eltern und die Abrechnung der Übungsleiterpauschale. Verantwortlicher im Sinne von Art. 4 Nr. 7 DSGVO ist dort der Verein, nicht Thomas Perr als Freiberufler.
+Auf Thomas Perrs privatem Server liegen bisher SEPA-Mandat, SEPA-Scan und die Übungsleiterpauschale. Alle drei verarbeiten Vereinsdaten: Bankverbindungen von Eltern, Einwilligungen für Minderjährige, Abrechnungsdaten von Übungsleitenden.
 
-Sobald auf derselben Maschine eigene Projekte laufen, teilen sich zwei Verantwortliche ein System. Bei einem Sicherheitsvorfall trifft es dann automatisch beide, und die Meldepflicht nach Art. 33 wird zur gemeinsamen Angelegenheit.
+Verantwortlicher im Sinne von Art. 4 Nr. 7 DSGVO ist dafür die BildungsWerkstatt, nicht Thomas Perr als Freiberufler. Solange beides auf einer Maschine liegt, teilen sich zwei Verantwortliche ein System, und bei einem Sicherheitsvorfall trifft es automatisch beide.
 
-Dazu kommt der praktische Teil. Der eigene Server ist der, auf dem experimentiert wird, und beim Experimentieren geht Dinge kaputt. Der Vereinsserver muss laufen, auch wenn ein Prototyp den Arbeitsspeicher frisst.
+Dazu kommt der praktische Teil. Der private Server ist der, auf dem experimentiert wird, und beim Experimentieren geht Dinge kaputt. Die Vereins-Apps müssen laufen, auch wenn ein Prototyp den Arbeitsspeicher frisst.
 
-Ein zweiter Server kostet ungefähr sieben bis neun Euro im Monat. Das ist billiger als eine einzige Stunde Aufräumen nach einer Vermischung.
+Sieben Euro im Monat sind billiger als eine einzige Stunde Aufräumen nach einer Vermischung.
 
 ## Was auf welchen Server gehört
 
-Server 1 behält alles, wofür der Verein einsteht. Anwesenheit, Mandate, Elternunterschriften, Übungsleiterabrechnung — dort ändert sich nichts.
+Der neue BWS-Server bekommt alles, wofür der Verein einsteht. SEPA-Mandat, SEPA-Scan, Übungsleiterpauschale, Anwesenheitserfassung, und was künftig für die BildungsWerkstatt dazukommt.
 
-Server 2 bekommt die freiberufliche Seite. IKOBE-Werkzeuge, TalentKompass-Prototypen, Landingpages, alles, was mit Claude entsteht und irgendwo laufen soll.
+Auf Thomas Perrs privatem Server bleibt die freiberufliche Seite. IKOBE-Werkzeuge, TalentKompass-Prototypen, Landingpages, alles was mit Claude entsteht und irgendwo laufen soll.
 
-Die Grenze ist scharf zu ziehen und gilt in beide Richtungen. Keine Vereinsdaten auf Server 2, auch nicht "nur kurz zum Testen". Umgekehrt keine Kundenprototypen auf Server 1.
+Die Grenze ist scharf zu ziehen und gilt in beide Richtungen. Keine Vereinsdaten auf dem privaten Server, auch nicht "nur kurz zum Testen". Umgekehrt keine Kundenprototypen auf dem BWS-Server.
 
-Wo Echtdaten von Kundinnen und Kunden ins Spiel kommen, braucht es vorher einen Auftragsverarbeitungsvertrag. Für Prototypen reichen erfundene Daten, so wie bei den 180 erfundenen Kindern in der Anwesenheitsliste.
+## Die Rolle, die daraus folgt
+
+Läuft der Hetzner-Vertrag auf Thomas Perrs Namen, ist er damit **Auftragsverarbeiter für die BildungsWerkstatt**. Das braucht einen AVV zwischen ihm und dem Verein, zusätzlich zu dem mit Hetzner.
+
+Ein eigenes Projekt in der Hetzner Console trennt technisch, nicht vertraglich. Für die vollständige Trennung bräuchte der Verein ein eigenes Hetzner-Konto. Das ist eine Frage an den Vorstand, keine technische.
+
+Auch die Domain gehört bedacht. Läuft eine Eltern-App unter `thomas-perr.de`, landen Eltern auf der persönlichen Domain eines Freiberuflers, obwohl der Verein verantwortlich ist. Die BWS-Apps gehören unter eine BWS-Domain.
 
 ## Welche Maschine
 
@@ -130,7 +142,7 @@ Ein Backup, das nie zurückgespielt wurde, ist eine Vermutung. Einmal im Quartal
 
 ## Was du zuerst tust
 
-Erstens den bestehenden Server inventarisieren. Das Skript `scripts/server1-inventar.sh` liest nur, ändert nichts und gibt keine Passwörter aus — Ausgabe hierher, dann weiß ich, worauf Server 2 aufsetzen muss.
+Erstens den privaten Server inventarisieren, auf dem die BWS-Apps heute liegen. Das Skript `scripts/server1-inventar.sh` liest nur, ändert nichts und gibt keine Passwörter aus. Die Ausgabe zeigt, was umziehen muss.
 
 Zweitens den neuen Server bestellen. Hetzner Cloud, CX23, Ubuntu 24.04, Standort Nürnberg, Backups aktiviert, dein SSH-Schlüssel ausgewählt und angehakt. Gleich mit dabei eine Cloud Firewall, die eingehend nur 22, 80 und 443 durchlässt.
 
@@ -140,8 +152,10 @@ Viertens den DNS-Eintrag bei GoDaddy setzen. Danach kannst du das erste Projekt 
 
 ## Offene Punkte
 
-Was auf Server 1 tatsächlich läuft, weiß ich nicht. Ich habe keinen Zugang dorthin, und in diesem Repository steht dazu nichts.
+Was auf dem privaten Server tatsächlich läuft, weiß ich nicht. Ich habe keinen Zugang dorthin, und in diesem Repository steht dazu nichts. Das Inventar-Skript beantwortet es.
 
-Ob die Vereinsprojekte langfristig auf Server 1 bleiben oder ob der Verein einen eigenen Vertrag bekommen sollte, ist eine Frage an den Vorstand. Solange der Server auf deinen Namen läuft, bist du Auftragsverarbeiter für den Verein und brauchst dafür einen AVV.
+Der Umzug selbst ist ein eigener Vorgang. Für die Übungsleiterpauschale gibt es dafür eine Anleitung, SEPA-Mandat und SEPA-Scan folgen nach demselben Muster in eigenen Durchgängen.
+
+Ob der Verein ein eigenes Hetzner-Konto bekommen sollte, ist eine Frage an den Vorstand. Solange der Vertrag auf deinen Namen läuft, bist du Auftragsverarbeiter für die BildungsWerkstatt und brauchst dafür einen AVV mit dem Verein.
 
 Für die datenschutzrechtliche Seite der Vereinsprojekte gibt es die Skills `minderjaehrigen-app-check` und `app-verfahrensdoku`. Die gehören in einen eigenen Durchgang, nicht in diese Serverfrage.
