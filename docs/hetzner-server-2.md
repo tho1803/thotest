@@ -80,11 +80,19 @@ Wenn du unterwegs auch vom iPhone ranwillst, ist Tailscale die bequemste Lösung
 
 ## Domains und Zertifikate
 
-Deine Domains liegen bei GoDaddy. Für den Server richtest du einen Wildcard-Eintrag ein, etwa `*.lab.thomas-perr.de` als A-Record auf die neue IP.
+Zwei Domains, zwei Anbieter. Das zu verwechseln kostet eine halbe Stunde, deshalb steht es hier ausdrücklich.
 
-Danach vergibst du in Coolify jede Adresse selbst, ohne noch einmal an den DNS zu müssen. Ein neuer Prototyp bekommt `talentkompass.lab.thomas-perr.de` und hat innerhalb einer Minute ein gültiges Zertifikat.
+Die Vereinsdomain ist **`bws-ev.de` und liegt bei Ionos**, erkennbar an den Nameservern `ns1040.ui-dns.de` und deren Geschwistern. Dort zeigen `bws-ev.de` und `www` auf das Ionos-Webhosting mit der WordPress-Seite. **`thomas-perr.de` liegt bei GoDaddy** und hat mit den Vereins-Apps nichts zu tun.
 
-Kundenprojekte, die produktiv gehen, bekommen später eine eigene Domain. Der Wildcard ist für die Werkstatt, nicht fürs Schaufenster.
+Die BWS-Apps bekommen deshalb A-Records bei **Ionos**: `sepa.bws-ev.de`, `uebungsleiter.bws-ev.de`, später `scan.bws-ev.de`, alle auf die Server-IP. Ausgeschrieben statt abgekürzt, weil Eltern und Übungsleitende diese Adressen lesen.
+
+Bei beiden Anbietern gehört ins Namensfeld **nur der Teil vor der Domain**, also `sepa` und nicht `sepa.bws-ev.de`. Der vollständige Name wird abgewiesen, weil der Anbieter die Domain selbst anhängt. Das war die Fehlermeldung, an der der erste Versuch scheiterte.
+
+**Auf der Vereinsdomain kein Wildcard.** Er schickt jeden Tippfehler und jede geratene Subdomain auf den Server. Drei einzelne Einträge sind einmal Arbeit und danach sauber. Eine Subdomain anzulegen berührt die Website nicht, dort kann nichts kaputtgehen.
+
+Für die eigenen Prototypen ist ein Wildcard dagegen richtig: `*.lab.thomas-perr.de` bei GoDaddy, danach vergibt Coolify jede Adresse selbst und hat innerhalb einer Minute ein Zertifikat.
+
+Zugang zum Ionos-Konto hat Tina Gaspard aus der Öffentlichkeitsarbeit. Änderungen an der Vereinsdomain gehören ihr kurz mitgeteilt, auch wenn du die Zugangsdaten hast.
 
 ## Die Firewall gehört vor den Server, nicht auf ihn
 
@@ -148,7 +156,7 @@ Zweitens den neuen Server bestellen. Hetzner Cloud, CX23, Ubuntu 24.04, Standort
 
 Drittens das Bootstrap-Skript laufen lassen. Es läuft einmal als root und richtet Benutzer, Firewall, Docker und auf Wunsch Coolify ein.
 
-Viertens den DNS-Eintrag bei GoDaddy setzen. Danach kannst du das erste Projekt deployen.
+Viertens die DNS-Einträge setzen, für die BWS-Apps bei Ionos unter `bws-ev.de`. Danach kannst du das erste Projekt deployen.
 
 ## Offene Punkte
 
