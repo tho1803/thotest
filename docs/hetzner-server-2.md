@@ -120,6 +120,20 @@ Sicherheitsupdates installiert der Server selbstständig, dafür sorgen die unat
 
 Die Coolify-Oberfläche gehört nicht offen ins Netz. Entweder du bindest sie an Tailscale, oder du erreichst sie über einen SSH-Tunnel.
 
+## Welche Apps umziehen
+
+Auf dem privaten Server liegen sechs Anwendungen, und nur zwei davon gehören dem Verein. Die Zuordnung ergibt sich aus den DNS-Einträgen unter `thomas-perr.de`.
+
+Umziehen müssen **`uebungsleiter`** (Übungsleiterabrechnung) und **`sepascan`** (Einlesen der Papiermandate). Beide laufen produktiv.
+
+Die **SEPA-Mandat-App** ist laut ihrem Übergabedokument noch im Bau und hat noch keinen DNS-Eintrag. Ihre Adresse kann trotzdem gleich mit angelegt werden.
+
+Bleiben dürfen **`mobbit`**, **`choosy`**, **`timos`** und **`talentometer`**. Das sind IKOBE-Werkzeuge und damit freiberuflich, kein Vereinsgeschäft.
+
+Bei Ionos werden daraus `uebungsleiter.bws-ev.de`, `sepascan.bws-ev.de` und `sepa.bws-ev.de`. Die TTL vor dem Umzug auf den kleinsten Wert stellen, den Ionos anbietet, sonst wartest du beim Umschalten auf ablaufende Zwischenspeicher.
+
+Die alten Adressen sterben nicht von selbst. Übungsleitende haben `uebungsleiter.thomas-perr.de` im Browser gespeichert, deshalb braucht es dort eine Weiterleitung oder einen Parallelbetrieb von einigen Wochen.
+
 ## So kommst du ran
 
 Auf dem Mac steht in `~/.ssh/config` ein Eintrag, der den Tunnel gleich mitbringt:
