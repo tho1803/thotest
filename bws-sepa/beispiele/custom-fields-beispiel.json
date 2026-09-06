@@ -1,0 +1,8 @@
+[
+  { "id": 1, "name": "IBAN", "data_type": "string" },
+  { "id": 2, "name": "Mandatsreferenz", "data_type": "string" },
+  { "id": 3, "name": "Kontoinhaber", "data_type": "string" },
+  { "id": 4, "name": "Mandatsdatum", "data_type": "date" },
+  { "id": 5, "name": "Kind", "data_type": "string" },
+  { "id": 6, "name": "Monatsbeitrag", "data_type": "monetary" }
+]

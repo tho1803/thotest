@@ -1,0 +1,11 @@
+{
+  "name": "bws-sepa",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SEPA-Mandate aus Paperless-ngx auslesen und windata-Importdatei erzeugen",
+  "scripts": {
+    "test": "node --test tests/",
+    "serve": "python3 -m http.server 8080"
+  }
+}

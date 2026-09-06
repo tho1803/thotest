@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEPA-Lastschriften · BildungsWerkstatt e.V.</title>
+<link rel="stylesheet" href="assets/bws.css">
+</head>
+<body>
+
+<header class="kopf">
+  <img src="assets/logo/bws-logo.png" alt="BildungsWerkstatt e.V.">
+  <div>
+    <div class="titel">SEPA-Lastschriften</div>
+    <div class="unterzeile">Mandate aus Paperless holen &middot; Importdatei für windata erzeugen</div>
+  </div>
+  <div class="abstand hilfe">Alle Daten bleiben in diesem Browser.</div>
+</header>
+
+<main>
+
+  <!-- 1 ------------------------------------------------------------------ -->
+  <section class="karte">
+    <h2><span class="schritt">1</span> Mandate aus Paperless holen</h2>
+    <p class="hilfe">
+      Die Seite fragt Paperless direkt ab. Der Token wird nur im Arbeitsspeicher gehalten und
+      beim Schließen des Fensters vergessen — er wird nicht gespeichert.
+    </p>
+
+    <div class="raster">
+      <div>
+        <label for="paperlessUrl">Adresse der Paperless-Instanz</label>
+        <input type="text" id="paperlessUrl" placeholder="https://paperless.bws-ev.de" autocomplete="off">
+      </div>
+      <div>
+        <label for="paperlessToken">API-Token</label>
+        <input type="password" id="paperlessToken" placeholder="aus dem Benutzerprofil" autocomplete="off">
+      </div>
+      <div>
+        <label for="tagAuswahl">Tag der Mandate</label>
+        <select id="tagAuswahl"><option value="">— erst verbinden —</option></select>
+      </div>
+    </div>
+
+    <div class="knopfreihe">
+      <button class="knopf" id="verbindenKnopf">Verbinden</button>
+      <button class="knopf gruen" id="ladenKnopf" disabled>Mandate laden</button>
+      <span class="hilfe">oder ohne Netzzugriff:</span>
+      <label class="knopf leer" for="jsonDatei" style="margin:0">JSON-Export öffnen</label>
+      <input type="file" id="jsonDatei" accept=".json,application/json" class="versteckt">
+    </div>
+    <div id="ladeMeldung"></div>
+  </section>
+
+  <!-- 2 ------------------------------------------------------------------ -->
+  <section class="karte versteckt" id="laufKarte">
+    <h2><span class="schritt">2</span> Lastschriftlauf festlegen</h2>
+
+    <h3>Gläubiger — die BildungsWerkstatt</h3>
+    <div class="raster">
+      <div>
+        <label for="agName">Name des Vereins</label>
+        <input type="text" id="agName" value="BildungsWerkstatt e.V.">
+      </div>
+      <div>
+        <label for="agIban">IBAN des Vereinskontos</label>
+        <input type="text" id="agIban" value="DE54 3702 0500 0001 6986 00">
+      </div>
+      <div>
+        <label for="agBic">BIC</label>
+        <input type="text" id="agBic" value="BFSWDE33MUE">
+      </div>
+      <div>
+        <label for="agGlaeubigerId">Gläubiger-Identifikationsnummer</label>
+        <input type="text" id="agGlaeubigerId" placeholder="DE00ZZZ00000000000">
+      </div>
+    </div>
+    <p class="hilfe" style="margin-top:8px">
+      Diese vier Angaben bleiben in diesem Browser gespeichert, damit sie nicht jedes Mal neu
+      eingetippt werden müssen. <button type="button" class="knopf leer" id="stammdatenLoeschen"
+      style="padding:3px 12px; font-size:.8rem">Gespeicherte Angaben löschen</button>
+    </p>
+
+    <h3 style="margin-top:20px">Einzug</h3>
+    <div class="raster">
+      <div>
+        <label for="termin">Fälligkeitstermin</label>
+        <input type="date" id="termin">
+      </div>
+      <div>
+        <label for="standardBetrag">Betrag je Mandat (€)</label>
+        <input type="number" id="standardBetrag" step="0.01" min="0" placeholder="z. B. 87,50">
+      </div>
+      <div>
+        <label for="standardSequenz">Sequenz</label>
+        <select id="standardSequenz">
+          <option value="RCUR" selected>RCUR — Folgelastschrift</option>
+          <option value="FRST">FRST — Erstlastschrift</option>
+          <option value="OOFF">OOFF — einmalig</option>
+          <option value="FNAL">FNAL — letzte Lastschrift</option>
+        </select>
+      </div>
+      <div>
+        <label for="zahlart">Lastschriftart</label>
+        <select id="zahlart">
+          <option value="BASIS" selected>BASIS — Basislastschrift</option>
+          <option value="COR1">COR1 — Eillastschrift</option>
+          <option value="FIRMEN">FIRMEN — Firmenlastschrift</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <label for="vwzVorlage">Verwendungszweck (Vorlage)</label>
+      <input type="text" id="vwzVorlage" value="Elternbeitrag {monat} {jahr} {kind}">
+      <p class="hilfe" style="margin-top:5px">
+        Platzhalter: <code>{kind}</code> <code>{name}</code> <code>{monat}</code>
+        <code>{jahr}</code> <code>{mandat}</code>
+      </p>
+    </div>
+
+    <div class="knopfreihe">
+      <button class="knopf" id="uebernehmenKnopf">Auf alle ausgewählten Zeilen anwenden</button>
+    </div>
+  </section>
+
+  <!-- 3 ------------------------------------------------------------------ -->
+  <section class="karte versteckt" id="tabellenKarte">
+    <h2><span class="schritt">3</span> Mandate prüfen</h2>
+    <p class="hilfe">
+      <span class="marke fehler">rot</span> hält die Zeile aus dem Lauf heraus &mdash;
+      <span class="marke pruefen">gelb</span> heißt: aus der Texterkennung gelesen, vor dem Einzug am Beleg gegenlesen.
+      Gepflegte Felder in Paperless ersparen diese Prüfung.
+    </p>
+    <div class="zahlenreihe">
+      <div><div class="zahl" id="zahlGesamt">0</div><div class="zahl-etikett">Mandate</div></div>
+      <div><div class="zahl gruen" id="zahlAusgewaehlt">0</div><div class="zahl-etikett">ausgewählt</div></div>
+      <div><div class="zahl" id="zahlSumme">0,00 €</div><div class="zahl-etikett">Summe</div></div>
+      <div><div class="zahl" id="zahlPruefen" style="color:var(--sun-500)">0</div><div class="zahl-etikett">zu prüfen</div></div>
+      <div><div class="zahl" id="zahlProblem" style="color:var(--danger)">0</div><div class="zahl-etikett">nicht einziehbar</div></div>
+    </div>
+    <div class="knopfreihe" style="margin-bottom:12px">
+      <button class="knopf leer" id="alleWaehlen">Alle auswählen</button>
+      <button class="knopf leer" id="keineWaehlen">Auswahl aufheben</button>
+      <button class="knopf leer" id="nurEinziehbare">Nur die einziehbaren auswählen</button>
+      <button class="knopf leer" id="nurGepruefte">Nur die ohne Prüfhinweis</button>
+    </div>
+    <div class="tabellenrahmen">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34px"></th>
+            <th>Kontoinhaber*in</th>
+            <th>Kind</th>
+            <th>IBAN</th>
+            <th>BIC</th>
+            <th>Mandatsreferenz</th>
+            <th>Mandatsdatum</th>
+            <th style="width:100px">Betrag</th>
+            <th style="width:92px">Sequenz</th>
+            <th>Verwendungszweck</th>
+            <th>Befund</th>
+          </tr>
+        </thead>
+        <tbody id="tabellenkoerper"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 ------------------------------------------------------------------ -->
+  <section class="karte versteckt" id="ausgabeKarte">
+    <h2><span class="schritt">4</span> Datei erzeugen</h2>
+    <p class="hilfe">
+      Die CSV ist das windata-Importformat. Die pain.008-Datei ist der Rückfallweg,
+      falls die Feldzuordnung beim CSV-Import einmal klemmt — windata liest beides.
+    </p>
+    <div class="raster">
+      <div>
+        <label for="csvVersion">Format der CSV</label>
+        <select id="csvVersion">
+          <option value="1.2" selected>windata CSV 1.2</option>
+          <option value="1.1">windata CSV 1.1</option>
+        </select>
+      </div>
+    </div>
+    <div class="knopfreihe">
+      <button class="knopf gruen" id="csvKnopf">windata-CSV herunterladen</button>
+      <button class="knopf leer" id="xmlKnopf">SEPA-XML (pain.008) herunterladen</button>
+      <button class="knopf leer" id="vorschauKnopf">Vorschau anzeigen</button>
+    </div>
+    <div id="ausgabeMeldung"></div>
+    <pre id="vorschau" class="mono versteckt" style="background:var(--ink-50); padding:14px; border-radius:10px; overflow:auto; max-height:340px; font-size:.78rem"></pre>
+  </section>
+
+</main>
+
+<footer class="fusszeile">
+  <strong>BildungsWerkstatt e.V.</strong> · Paul-Wassermann-Str. 15 · 81829 München · office@bws-ev.de &nbsp;|&nbsp;
+  Dieses Werkzeug verarbeitet alle Daten ausschließlich im Browser. Es findet keine Übertragung an Dritte statt.
+</footer>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+# Niemals echte Mandats-, Bank- oder Personendaten ins Repo
+*.csv
+*.xml
+*.pain008*
+/export/
+/daten/
+!beispiele/*.csv
+
+# Zugangsdaten
+.env
+*.token
+token.txt
+
+node_modules/
+.DS_Store
+Thumbs.db
