@@ -14,3 +14,6 @@ token.txt
 node_modules/
 .DS_Store
 Thumbs.db
+
+# Der Suchindex enthält Volltexte mit Bankdaten
+archiv-index.json

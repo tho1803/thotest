@@ -26,7 +26,7 @@
 
 import { createServer } from 'node:http';
 import { createInterface } from 'node:readline/promises';
-import { readFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import process from 'node:process';
@@ -37,6 +37,17 @@ const BASIS = (process.env.PAPERLESS_BASIS ?? 'https://app.paperless.io/api/v1')
 
 /** Der Token lebt nur in dieser Variablen, solange der Helfer läuft. */
 let token = '';
+
+/**
+ * Der Suchindex. Er wird auf Platte gelegt, damit die Dokumente nicht bei
+ * jeder Suche neu geladen werden müssen — und weil paperless.io selbst nur
+ * Dokumentnamen durchsucht, nicht deren Inhalt.
+ *
+ * Die Datei enthält Bankdaten im Klartext. Sie gehört auf den Rechner des
+ * Vereins und in keine Cloud; die .gitignore schließt sie aus.
+ */
+const INDEXDATEI = join(WURZEL, 'archiv-index.json');
+let index = null;
 
 async function frageApi(pfad, alsPdf = false) {
   const antwort = await fetch(`${BASIS}${pfad}`, {
@@ -184,8 +195,80 @@ const TYPEN = {
   '.png': 'image/png', '.mjs': 'text/javascript; charset=utf-8'
 };
 
+/** Lädt den Index von Platte, falls vorhanden. */
+async function ladeIndex() {
+  if (index) return index;
+  try {
+    const roh = JSON.parse(await readFile(INDEXDATEI, 'utf8'));
+    // Die Wortmengen werden beim Speichern zu Listen — hier zurückwandeln.
+    roh.eintraege = roh.eintraege.map((e) => ({ ...e, worte: new Set(e.worte) }));
+    index = roh;
+    console.log(`Index geladen: ${index.eintraege.length} Dokumente`);
+  } catch {
+    index = null;
+  }
+  return index;
+}
+
+async function speichereIndex() {
+  const zumSpeichern = {
+    ...index,
+    eintraege: index.eintraege.map((e) => ({ ...e, worte: [...e.worte] }))
+  };
+  await writeFile(INDEXDATEI, JSON.stringify(zumSpeichern), 'utf8');
+}
+
 const server = createServer(async (anfrage, antwort) => {
   const url = new URL(anfrage.url, `http://localhost:${HAFEN}`);
+
+  // Bestand einlesen und Index bauen.
+  if (url.pathname === '/index-bauen') {
+    try {
+      console.log('\nBestand wird eingelesen …');
+      const dokumente = await holeMandate(false);
+      const { baueIndex } = await import('../src/volltext.js');
+      index = baueIndex(dokumente);
+      await speichereIndex();
+      const { bestandsUebersicht } = await import('../src/volltext.js');
+      const uebersicht = bestandsUebersicht(index);
+      antwort.writeHead(200, { 'Content-Type': TYPEN['.json'] });
+      antwort.end(JSON.stringify(uebersicht));
+      console.log(`Index gebaut: ${uebersicht.dokumente} Dokumente, ${uebersicht.zeichen} Zeichen`);
+    } catch (fehler) {
+      antwort.writeHead(502, { 'Content-Type': TYPEN['.json'] });
+      antwort.end(JSON.stringify({ fehler: fehler.message }));
+    }
+    return;
+  }
+
+  // Im Bestand suchen.
+  if (url.pathname === '/suche') {
+    await ladeIndex();
+    if (!index) {
+      antwort.writeHead(409, { 'Content-Type': TYPEN['.json'] });
+      antwort.end(JSON.stringify({ fehler: 'Noch kein Index. Erst den Bestand einlesen.' }));
+      return;
+    }
+    const { suche, bestandsUebersicht } = await import('../src/volltext.js');
+    const treffer = suche(index, url.searchParams.get('q') ?? '', {
+      zustand: url.searchParams.get('zustand') ?? '',
+      vorlage: url.searchParams.get('vorlage') ?? '',
+      von: url.searchParams.get('von') ?? '',
+      bis: url.searchParams.get('bis') ?? ''
+    });
+    antwort.writeHead(200, { 'Content-Type': TYPEN['.json'] });
+    antwort.end(JSON.stringify({ treffer, uebersicht: bestandsUebersicht(index) }));
+    return;
+  }
+
+  // Was steckt im Bestand?
+  if (url.pathname === '/bestand') {
+    await ladeIndex();
+    const { bestandsUebersicht } = await import('../src/volltext.js');
+    antwort.writeHead(200, { 'Content-Type': TYPEN['.json'] });
+    antwort.end(JSON.stringify(index ? bestandsUebersicht(index) : { dokumente: 0 }));
+    return;
+  }
 
   // Die Oberfläche fragt hier nach den Mandaten.
   if (url.pathname === '/mandate') {
