@@ -144,3 +144,18 @@ Fragt den Token ab, probiert die üblichen Anmeldeverfahren und danach lesende
 Adressen durch und schreibt einen Bericht, was der Zugang erreicht. Es werden
 ausschließlich GET-Anfragen gestellt; im Account wird nichts verändert. Der
 Token wird nicht gespeichert und steht nicht im Bericht.
+
+## Was der Zugang darf
+
+```bash
+node scripts/schreibrechte-pruefen.mjs
+```
+
+Zeigt, welche Bereiche der Token lesen darf und welche Rechte ihm fehlen —
+paperless.io nennt den fehlenden Scope in seiner Antwort selbst. Der heutige
+Zugang liest Dokumente und Vorlagen, sonst nichts; Kontakte und
+Arbeitsbereiche sind gesperrt.
+
+Das Skript legt nichts an, versendet nichts und löscht nichts. Wie es das
+sicherstellt und was das für die Massenanlage von Mandaten bedeutet, steht in
+[docs/paperless-setup.md](docs/paperless-setup.md).

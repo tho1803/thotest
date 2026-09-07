@@ -85,6 +85,53 @@ Mandatsangaben führt, wird der Abruf in `src/paperless.js` darauf umgestellt.
 Dann entfällt die Texterkennung: Die Werte kommen strukturiert an, und die
 Prüfhinweise verschwinden.
 
+### Was der Zugang darf — und was nicht
+
+Der Token trägt Rechte in einzeln geschnittenen Bereichen, sogenannten Scopes.
+Welche fehlen, sagt paperless.io selbst: Eine verwehrte Anfrage nennt den
+Scope, an dem sie scheitert.
+
+```bash
+node scripts/schreibrechte-pruefen.mjs
+```
+
+Am Zugang der BildungsWerkstatt (Stand September 2026, Team 14644):
+
+| Bereich | Antwort |
+|---------|---------|
+| `/documents` | 200 — lesbar |
+| `/templates` | 200 — lesbar |
+| `/contacts` | 403, verlangt Scope `all_internal.read` |
+| `/workspaces` | 403, verlangt Scope `workspace.read` |
+| `/teams`, `/users`, `/folders`, `/uploads`, `/attachments` | 404 — gibt es nicht |
+| `/webhooks` | 400, verlangt den Parameter `oauth_application_id` |
+
+Drei Dinge folgen daraus.
+
+**Der Zugang ist eng geschnitten.** Er liest Dokumente und Vorlagen, mehr
+nicht. Für alles Weitere braucht es einen Token mit zusätzlichen Scopes; der
+wird in den Einstellungen von paperless.io angelegt.
+
+**Es gibt ein OAuth-Anwendungsmodell.** Dass `/webhooks` nach einer
+`oauth_application_id` fragt, heißt: paperless.io kennt eingetragene
+Anwendungen mit eigenen Rechten, nicht nur persönliche Tokens. Für einen
+dauerhaften Betrieb ist das der sauberere Weg — die Rechte hängen dann an der
+Anwendung des Vereins statt an einer Person.
+
+**Die API prüft gegen eine hinterlegte Beschreibung.** Die Fehlermeldungen
+verweisen mit Zeigern wie `#/paths/~1api~1v1~1webhooks/get` auf ein
+OpenAPI-Schema. Öffentlich abrufbar ist es nicht — die naheliegenden Adressen
+(`/openapi.json`, `/swagger.json`, `/api/v1/spec`) antworten mit 404 oder mit
+der Weboberfläche. Die Fehlermeldungen bleiben damit die beste Auskunft
+darüber, was ein Endpunkt erwartet.
+
+Wie das Prüfskript ohne Risiko arbeitet: paperless.io prüft erst die
+Anmeldung, dann den Scope, dann das Schema des Rumpfes — und legt erst danach
+etwas an. Eine Anfrage mit leerem Rumpf scheitert also immer an der
+Schema-Prüfung, bevor irgendetwas entsteht. Sie verrät trotzdem, ob der
+Endpunkt offenstünde. Das Skript legt nichts an, versendet nichts und löscht
+nichts; einen Schalter dafür hat es bewusst nicht.
+
 ## Weg 3: paperless-ngx
 
 Sollte die BildungsWerkstatt ein eigenes Dokumentenarchiv betreiben, ist der

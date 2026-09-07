@@ -5,7 +5,7 @@
   "type": "module",
   "description": "SEPA-Mandate aus Paperless-ngx auslesen und windata-Importdatei erzeugen",
   "scripts": {
-    "test": "node --test tests/",
+    "test": "node --test \"tests/*.test.js\"",
     "serve": "python3 -m http.server 8080"
   }
 }
