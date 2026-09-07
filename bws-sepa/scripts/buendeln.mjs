@@ -68,7 +68,13 @@ teile.push(`// ---- src/${steuerung} ${'-'.repeat(Math.max(0, 60 - steuerung.len
 // HTML zusammensetzen: CSS und Logo mit hinein, damit nichts nachgeladen wird.
 const html = await readFile(join(WURZEL, `${seite}.html`), 'utf8');
 const css = await readFile(join(WURZEL, 'assets/bws.css'), 'utf8');
-const logo = await readFile(join(WURZEL, 'assets/logo/bws-logo.png'));
+// Die verkleinerte Fassung reicht für die Anzeige und hält die Datei klein.
+let logo;
+try {
+  logo = await readFile(join(WURZEL, 'assets/logo/bws-logo-klein.png'));
+} catch {
+  logo = await readFile(join(WURZEL, 'assets/logo/bws-logo.png'));
+}
 
 const fertig = html
   .replace('<link rel="stylesheet" href="assets/bws.css">', `<style>\n${css}\n</style>`)
