@@ -15,14 +15,32 @@ import { zuIsoDatum } from './mandate.js';
 /** Gläubiger-Identifikationsnummer der BildungsWerkstatt e.V. */
 export const GLAEUBIGER_ID = 'DE82BWS00002311070';
 
-/** So sind die Mandatsreferenzen der BildungsWerkstatt aufgebaut. */
-export const REFERENZ_SCHEMA = 'BWS_{nachname}-{vorname}';
+/**
+ * So werden die Mandatsreferenzen der BildungsWerkstatt gebildet.
+ *
+ * Auf den Papierformularen steht das Schema mit Unterstrich
+ * (BWS_Nachname-Vorname). Der Unterstrich gehört nicht zum SEPA-Zeichensatz
+ * und würde in der Datei zu einem Leerzeichen — die Referenz wiche damit von
+ * der auf dem unterschriebenen Mandat ab. Deshalb durchgängig Bindestrich.
+ */
+export const REFERENZ_SCHEMA = 'BWS-{nachname}-{vorname}';
+
+/** Das alte Schema mit Unterstrich, wie es auf den Papierformularen steht. */
+export const REFERENZ_SCHEMA_ALT = 'BWS_{nachname}-{vorname}';
+
+/**
+ * Bringt eine vorhandene Referenz auf die SEPA-taugliche Form.
+ * Aus BWS_Meier-Lea wird BWS-Meier-Lea; alles andere bleibt, wie es ist.
+ */
+export function aufSepaFormBringen(referenz) {
+  return String(referenz ?? '').replace(/_/g, '-');
+}
 
 const MANDATS_BEGINN = /SEPA\s*-?\s*Lastschriftmandat\s+einer\s+wiederkehrenden\s+Lastschrift/gi;
-const KONTOINHABER = /Kontoinhaber\/?(?:in|\*in)?\s*:?\s*_*\s*([^\n\r]{2,70})/i;
+const FORMULAR_KONTOINHABER = /Kontoinhaber\/?(?:in|\*in)?\s*:?\s*_*\s*([^\n\r]{2,70})/i;
 const KIND_MIT_KLAMMER = /([^\n\r]{3,80})\r?\n\s*\(\s*Vorname,\s*Name/i;
 const DATUM_ZEILE = /(?:Ort,\s*Datum|Ort\s*,\s*Datum)[^\n\r]{0,40}/i;
-const DATUM = /(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*[.\/]\s*(\d{2,4})/g;
+const FORMULAR_DATUM = /(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*[.\/]\s*(\d{2,4})/g;
 
 /**
  * Zerlegt den Text eines Dokuments in einzelne Mandate.
@@ -60,11 +78,11 @@ function findeUnterschriftsdatum(abschnitt) {
     if (!DATUM_ZEILE.test(zeilen[i])) continue;
     // Das Datum steht in derselben Zeile oder in einer der beiden davor.
     for (const zeile of [zeilen[i], zeilen[i - 1] ?? '', zeilen[i - 2] ?? '']) {
-      const treffer = [...zeile.matchAll(DATUM)];
+      const treffer = [...zeile.matchAll(FORMULAR_DATUM)];
       if (treffer.length) return zuIsoDatum(treffer.at(-1)[0]);
     }
   }
-  const alle = [...abschnitt.matchAll(DATUM)].map((t) => zuIsoDatum(t[0])).filter(Boolean);
+  const alle = [...abschnitt.matchAll(FORMULAR_DATUM)].map((t) => zuIsoDatum(t[0])).filter(Boolean);
   return alle.length ? alle.sort().at(-1) : '';
 }
 
@@ -104,7 +122,7 @@ export function bildeMandatsreferenz(kind, schema = REFERENZ_SCHEMA) {
 export function leseBwsMandat(abschnitt, laufendeNummer = 1) {
   const hinweise = [];
 
-  const inhaberTreffer = abschnitt.match(KONTOINHABER);
+  const inhaberTreffer = abschnitt.match(FORMULAR_KONTOINHABER);
   const kontoinhaber = saubereZeile(inhaberTreffer?.[1] ?? '');
 
   const kindTreffer = abschnitt.match(KIND_MIT_KLAMMER);

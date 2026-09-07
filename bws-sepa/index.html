@@ -14,7 +14,10 @@
     <div class="titel">SEPA-Lastschriften</div>
     <div class="unterzeile">Mandate aus Paperless holen &middot; Importdatei für windata erzeugen</div>
   </div>
-  <div class="abstand hilfe">Alle Daten bleiben in diesem Browser.</div>
+  <div class="abstand hilfe">
+    Alle Daten bleiben in diesem Browser. &nbsp;·&nbsp;
+    <a href="api-pruefen.html">Zugang zu paperless.io prüfen</a>
+  </div>
 </header>
 
 <main>
@@ -210,16 +213,16 @@
         <thead>
           <tr>
             <th style="width:34px"></th>
+            <th style="width:210px">Befund</th>
             <th>Kontoinhaber*in</th>
             <th>Kind</th>
             <th>IBAN</th>
             <th>BIC</th>
             <th>Mandatsreferenz</th>
             <th>Mandatsdatum</th>
-            <th style="width:100px">Betrag</th>
-            <th style="width:92px">Sequenz</th>
+            <th style="width:96px">Betrag</th>
+            <th style="width:88px">Sequenz</th>
             <th>Verwendungszweck</th>
-            <th>Befund</th>
           </tr>
         </thead>
         <tbody id="tabellenkoerper"></tbody>
@@ -247,6 +250,7 @@
       <button class="knopf gruen" id="csvKnopf">windata-CSV herunterladen</button>
       <button class="knopf leer" id="xmlKnopf">SEPA-XML (pain.008) herunterladen</button>
       <button class="knopf leer" id="vorschauKnopf">Vorschau anzeigen</button>
+      <button class="knopf leer versteckt" id="kopierKnopf">Inhalt in die Zwischenablage</button>
     </div>
     <div id="ausgabeMeldung"></div>
     <pre id="vorschau" class="mono versteckt" style="background:var(--ink-50); padding:14px; border-radius:10px; overflow:auto; max-height:340px; font-size:.78rem"></pre>

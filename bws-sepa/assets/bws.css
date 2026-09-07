@@ -81,7 +81,7 @@ input[readonly] { background:var(--ink-50); }
 .hinweis.warnung { background:var(--sun-soft); border-color:#f6dfa0; }
 .hinweis.fehler { background:var(--danger-soft); border-color:#f3c4c2; }
 
-table { width:100%; min-width:1050px; border-collapse:collapse; font-size:.87rem; }
+table { width:100%; min-width:980px; border-collapse:collapse; font-size:.87rem; }
 th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--ink-100); vertical-align:middle; }
 th { background:var(--ink-50); font-weight:600; color:var(--ink-700); position:sticky; top:0; z-index:1; }
 tbody tr:hover { background:var(--blue-50); }
@@ -93,7 +93,11 @@ td input, td select { padding:5px 7px; font-size:.85rem; border-radius:7px; }
 .marke {
   display:inline-block; padding:2px 9px; border-radius:var(--radius-pill);
   font-size:.74rem; font-weight:600; white-space:nowrap; cursor:help;
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; vertical-align:middle;
 }
+/* Mehrere Befunde stehen untereinander, damit die Spalte schmal bleibt. */
+td .marke + .marke { margin-top:3px; }
+td .marke { display:block; width:fit-content; }
 .marke.gut { background:var(--green-100); color:var(--green-700); }
 .marke.pruefen { background:var(--sun-soft); color:#8a6410; }
 .marke.fehler { background:var(--danger-soft); color:var(--danger); }

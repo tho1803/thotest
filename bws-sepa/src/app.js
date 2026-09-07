@@ -86,16 +86,38 @@ function euro(betrag) {
   return Number(betrag || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
 }
 
+/**
+ * Bietet eine Datei zum Herunterladen an — und immer auch zum Kopieren.
+ *
+ * Manche Umgebungen unterbinden Downloads aus einer Seite heraus (etwa eine
+ * online geteilte Vorschau). Dort passiert beim Klick sichtbar nichts.
+ * Deshalb steht der Inhalt zusätzlich zum Markieren bereit.
+ */
 function lade(dateiInhalt, name, typ) {
-  const blob = new Blob([dateiInhalt], { type: typ });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = name;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 2000);
+  try {
+    const blob = new Blob([dateiInhalt], { type: typ });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch {
+    /* Der Kopierweg unten bleibt in jedem Fall. */
+  }
+  bieteErsatzweg(dateiInhalt, name);
+}
+
+/** Zeigt den Dateiinhalt zum Markieren und Kopieren. */
+function bieteErsatzweg(inhalt, name) {
+  const feld = $('vorschau');
+  feld.textContent = inhalt;
+  feld.classList.remove('versteckt');
+  $('kopierKnopf').classList.remove('versteckt');
+  $('kopierKnopf').dataset.name = name;
+  $('kopierKnopf').dataset.inhalt = inhalt;
 }
 
 function auftraggeber() {
@@ -337,6 +359,7 @@ function zeigeMandate() {
 
     zeile.innerHTML = `
       <td><input type="checkbox" data-rolle="auswahl" data-index="${index}" ${mandat.uebernehmen ? 'checked' : ''}></td>
+      <td>${befund}</td>
       <td>${mandat.kontoinhaber || '<em>fehlt</em>'}</td>
       <td>${mandat.kind || ''}</td>
       <td class="mono">${mandat.iban || '<em>fehlt</em>'} ${herkunft}</td>
@@ -349,8 +372,7 @@ function zeigeMandate() {
             ${['RCUR', 'FRST', 'OOFF', 'FNAL'].map((s) =>
               `<option ${mandat.sequenz === s ? 'selected' : ''}>${s}</option>`).join('')}
           </select></td>
-      <td><input type="text" data-rolle="vwz" data-index="${index}" value="${mandat.verwendungszweck ?? ''}"></td>
-      <td>${befund}</td>`;
+      <td><input type="text" data-rolle="vwz" data-index="${index}" value="${mandat.verwendungszweck ?? ''}"></td>`;
     koerper.appendChild(zeile);
   });
 
@@ -507,6 +529,19 @@ document.addEventListener('DOMContentLoaded', () => {
   $('csvKnopf').addEventListener('click', () => csvErzeugen(false));
   $('xmlKnopf').addEventListener('click', xmlErzeugen);
   $('vorschauKnopf').addEventListener('click', vorschau);
+  $('kopierKnopf').addEventListener('click', async () => {
+    const inhalt = $('kopierKnopf').dataset.inhalt ?? '';
+    try {
+      await navigator.clipboard.writeText(inhalt);
+      meldung('ausgabeMeldung', 'gut',
+        `Der Inhalt liegt in der Zwischenablage. In einen Texteditor einfügen und als ` +
+        `<code>${$('kopierKnopf').dataset.name}</code> speichern.`);
+    } catch {
+      meldung('ausgabeMeldung', 'info',
+        'Das Kopieren über den Knopf ist hier gesperrt — den Text unten markieren und mit ' +
+        'Strg+C (Mac: Cmd+C) kopieren.');
+    }
+  });
 
   $('alleWaehlen').addEventListener('click', () => {
     document.querySelectorAll('[data-rolle="auswahl"]').forEach((k) => { k.checked = true; });

@@ -169,11 +169,11 @@ test('baut ein Mandat aus digital ausgefüllten Feldern ohne Prüfhinweise', asy
   assert.equal(mandat.mandatsDatum, '2026-09-02');
 });
 
-test('weist auf den Unterstrich in der Mandatsreferenz hin', async () => {
+test('ersetzt den Unterstrich alter Referenzen durch einen Bindestrich', async () => {
   const { mandatAusStrukturiertenFeldern } = await import('../src/mandate.js');
-  // Das Schema der BildungsWerkstatt lautet BWS_Nachname-Vorname. Der
-  // Unterstrich gehört nicht zum SEPA-Zeichensatz und würde in der Datei
-  // zu einem Leerzeichen — das darf nicht unbemerkt geschehen.
+  // Alte Mandate tragen die Referenz BWS_Nachname-Vorname. Der Unterstrich
+  // gehört nicht zum SEPA-Zeichensatz und würde in der Datei zu einem
+  // Leerzeichen. Der Bindestrich bleibt dagegen erhalten und meint dasselbe.
   const mandat = mandatAusStrukturiertenFeldern(
     { id: 'doc_3' },
     {
@@ -181,10 +181,9 @@ test('weist auf den Unterstrich in der Mandatsreferenz hin', async () => {
       mandatsId: 'BWS_Beispiel-Lea', mandatsDatum: '2026-09-02'
     }
   );
-  assert.equal(mandat.uebernehmen, true, 'der Einzug bleibt möglich');
-  assert.equal(mandat.einwandfrei, false);
-  assert.ok(mandat.hinweise.some((h) => /nicht zulässig/.test(h)));
-  assert.ok(mandat.hinweise.some((h) => /BWS Beispiel-Lea/.test(h)));
+  assert.equal(mandat.mandatsId, 'BWS-Beispiel-Lea');
+  assert.equal(mandat.uebernehmen, true);
+  assert.ok(mandat.hinweise.some((h) => /Bindestrich ersetzt/.test(h)));
 });
 
 test('meldet fehlende digitale Felder als Fehler, nicht als Hinweis', async () => {

@@ -73,14 +73,28 @@ test('entfernt Unterstriche und Vordrucktext aus dem Namen', () => {
 });
 
 test('bildet die Mandatsreferenz nach dem Schema der BildungsWerkstatt', () => {
-  assert.equal(bildeMandatsreferenz('Beispiel, Lea'), 'BWS_Beispiel-Lea');
-  assert.equal(bildeMandatsreferenz('Jonas Muster'), 'BWS_Muster-Jonas');
+  // Durchgängig Bindestrich: der Unterstrich des Papierformulars gehört
+  // nicht zum SEPA-Zeichensatz.
+  assert.equal(bildeMandatsreferenz('Beispiel, Lea'), 'BWS-Beispiel-Lea');
+  assert.equal(bildeMandatsreferenz('Jonas Muster'), 'BWS-Muster-Jonas');
   assert.equal(bildeMandatsreferenz(''), '');
+});
+
+test('die gebildete Referenz übersteht den SEPA-Zeichensatz unverändert', async () => {
+  const { pruefeMandatsreferenz } = await import('../src/sepa-text.js');
+  const referenz = bildeMandatsreferenz('Beispiel, Lea');
+  assert.equal(pruefeMandatsreferenz(referenz).unveraendert, true);
+});
+
+test('bringt eine alte Referenz mit Unterstrich auf die SEPA-Form', async () => {
+  const { aufSepaFormBringen } = await import('../src/bws-formular.js');
+  assert.equal(aufSepaFormBringen('BWS_Meier-Lea'), 'BWS-Meier-Lea');
+  assert.equal(aufSepaFormBringen('BWS-Meier-Lea'), 'BWS-Meier-Lea');
 });
 
 test('weist auf die gebildete Referenz hin, statt sie als gesichert auszugeben', () => {
   const [erstes] = leseBwsMandate(SCAN);
-  assert.ok(erstes.mandatsId.startsWith('BWS_'));
+  assert.ok(erstes.mandatsId.startsWith('BWS-'));
   assert.ok(erstes.hinweise.some((h) => /Schema gebildet/.test(h)));
 });
 

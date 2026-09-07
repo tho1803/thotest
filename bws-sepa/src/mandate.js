@@ -228,9 +228,17 @@ export function mandatAusStrukturiertenFeldern(dokument, roh) {
   }
 
   if (!roh.kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
-  if (!roh.mandatsId) fehler.push('Mandatsreferenz fehlt');
+
+  // Der Unterstrich aus dem alten Schema wird ersetzt, nicht bemängelt:
+  // BWS_Meier-Lea und BWS-Meier-Lea meinen dasselbe Mandat, und nur die
+  // zweite Form übersteht den SEPA-Zeichensatz unverändert.
+  const mandatsId = String(roh.mandatsId ?? '').replace(/_/g, '-');
+  if (!mandatsId) fehler.push('Mandatsreferenz fehlt');
   else {
-    const referenz = pruefeMandatsreferenz(roh.mandatsId);
+    if (mandatsId !== roh.mandatsId) {
+      hinweise.push(`Unterstrich in der Mandatsreferenz durch Bindestrich ersetzt: ${mandatsId}`);
+    }
+    const referenz = pruefeMandatsreferenz(mandatsId);
     if (!referenz.unveraendert) {
       hinweise.push(
         `Mandatsreferenz enthält ${referenz.ersetzt.join(' ')} — im SEPA-Zeichensatz nicht zulässig, ` +
@@ -252,7 +260,7 @@ export function mandatAusStrukturiertenFeldern(dokument, roh) {
     kind: roh.kind || '',
     iban: ibanPruefung.gueltig ? ibanPruefung.iban : (roh.iban || ''),
     bic: bicPruefung.bic,
-    mandatsId: roh.mandatsId || '',
+    mandatsId,
     mandatsDatum,
     betrag: zuBetrag(roh.betrag),
     sequenz: 'RCUR',
