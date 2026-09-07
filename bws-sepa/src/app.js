@@ -129,10 +129,52 @@ function auftraggeber() {
   };
 }
 
+/* ---------- Schritt 1: über den Helfer ---------------------------------- */
+
+/**
+ * Holt die Mandate vom Helfer auf diesem Rechner. Der spricht mit
+ * paperless.io und liest die Werte aus den Dokumenten — beides kann der
+ * Browser von sich aus nicht.
+ */
+async function vomHelferHolen() {
+  const alle = $('helferUmfang').value === 'alle' ? '?alle=1' : '';
+  $('helferKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Der Helfer holt die Mandate aus paperless.io …');
+
+  try {
+    const antwort = await fetch(`/mandate${alle}`);
+    const daten = await antwort.json();
+    if (!antwort.ok) throw new Error(daten.fehler ?? `Der Helfer meldet ${antwort.status}.`);
+
+    const dokumente = daten.results ?? [];
+    if (!dokumente.length) {
+      meldung('ladeMeldung', 'warnung',
+        'Der Helfer hat kein abgeschlossenes Mandat gefunden. Liegt in paperless.io schon ' +
+        'ein ausgefülltes und unterschriebenes Mandat? Sonst oben auf "alle Dokumente" umstellen.');
+      return;
+    }
+
+    mandate = extrahiereMandate(dokumente, { bwsFormular });
+    zeigeMandate();
+    meldung('ladeMeldung', 'gut',
+      `${mandate.length} Mandate aus ${dokumente.length} Dokumenten gelesen.`);
+  } catch (fehler) {
+    const laeuftNicht = /Failed to fetch|NetworkError|load failed/i.test(fehler.message);
+    meldung('ladeMeldung', 'fehler', laeuftNicht
+      ? 'Der Helfer antwortet nicht. Läuft er im Terminal? Zu starten mit ' +
+        '<code>node helfer/paperless-helfer.mjs</code> — und diese Seite dann über ' +
+        '<code>http://localhost:8787</code> öffnen, nicht als Datei.'
+      : fehler.message);
+  } finally {
+    $('helferKnopf').disabled = false;
+  }
+}
+
 /* ---------- Quelle umschalten ------------------------------------------- */
 
 function zeigeQuelle() {
   const gewaehlt = $('quelle').value;
+  $('quelleHelfer').classList.toggle('versteckt', gewaehlt !== 'helfer');
   $('quelleIo').classList.toggle('versteckt', gewaehlt !== 'io');
   $('quelleDatei').classList.toggle('versteckt', gewaehlt !== 'datei');
   $('quelleNgx').classList.toggle('versteckt', gewaehlt !== 'ngx');
@@ -514,6 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ladeZuordnung();
   zeigeQuelle();
   $('quelle').addEventListener('change', zeigeQuelle);
+  $('helferKnopf').addEventListener('click', vomHelferHolen);
   $('ioVerbindenKnopf').addEventListener('click', ioVerbinden);
   $('ioLadenKnopf').addEventListener('click', ioMandateLaden);
   $('zuordnungZuruecksetzen').addEventListener('click', () => {

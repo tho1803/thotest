@@ -30,15 +30,37 @@
       <div>
         <label for="quelle">Woher kommen die Mandate?</label>
         <select id="quelle">
-          <option value="io" selected>paperless.io — digital ausgefüllte Mandate</option>
+          <option value="helfer" selected>paperless.io über den Helfer — empfohlen</option>
+          <option value="io">paperless.io unmittelbar — nur mit CORS-Freigabe</option>
           <option value="datei">Datei — Scan oder Export</option>
           <option value="ngx">paperless-ngx — eigenes Dokumentenarchiv</option>
         </select>
       </div>
     </div>
 
-    <!-- paperless.io -->
-    <div id="quelleIo">
+    <!-- paperless.io über den Helfer -->
+    <div id="quelleHelfer">
+      <p class="hilfe">
+        Der Helfer läuft auf diesem Rechner, holt die Mandate aus paperless.io und liest
+        die ausgefüllten Werte aus den Dokumenten. Er wird im Terminal gestartet mit
+        <code>node helfer/paperless-helfer.mjs</code> und fragt dort den Token ab.
+      </p>
+      <div class="raster">
+        <div>
+          <label for="helferUmfang">Welche Dokumente?</label>
+          <select id="helferUmfang">
+            <option value="fertig" selected>nur abgeschlossene Mandate</option>
+            <option value="alle">alle Dokumente (auch Entwürfe)</option>
+          </select>
+        </div>
+      </div>
+      <div class="knopfreihe">
+        <button class="knopf gruen" id="helferKnopf">Mandate holen</button>
+      </div>
+    </div>
+
+    <!-- paperless.io unmittelbar -->
+    <div id="quelleIo" class="versteckt">
       <p class="hilfe">
         Der Regelfall: Eltern füllen das Mandat in paperless.io aus, die Felder kommen
         strukturiert an. Der Token wird nur im Arbeitsspeicher gehalten und beim Schließen
