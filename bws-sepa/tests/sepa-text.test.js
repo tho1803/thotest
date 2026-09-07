@@ -42,3 +42,15 @@ test('liefert höchstens 14 Zeilen', () => {
   const zeilen = verwendungszweckZeilen(Array.from({ length: 100 }, () => 'Beitragswort').join(' '));
   assert.equal(zeilen.length, 14);
 });
+
+test('meldet Zeichen in der Mandatsreferenz, die SEPA nicht kennt', async () => {
+  const { pruefeMandatsreferenz } = await import('../src/sepa-text.js');
+  const mitUnterstrich = pruefeMandatsreferenz('BWS_Beispiel-Lea');
+  assert.equal(mitUnterstrich.unveraendert, false);
+  assert.equal(mitUnterstrich.sepaForm, 'BWS Beispiel-Lea');
+  assert.deepEqual(mitUnterstrich.ersetzt, ['_']);
+
+  const sauber = pruefeMandatsreferenz('BWS-Beispiel-Lea');
+  assert.equal(sauber.unveraendert, true);
+  assert.deepEqual(sauber.ersetzt, []);
+});

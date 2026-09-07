@@ -25,7 +25,9 @@ export class PaperlessClient {
   constructor(basisUrl, token, fetchImpl = globalThis.fetch) {
     this.basisUrl = String(basisUrl ?? '').replace(/\/+$/, '');
     this.token = String(token ?? '').trim();
-    this.fetch = fetchImpl;
+    // fetch verliert als Objekteigenschaft seine Bindung an window und wirft
+    // im Browser sofort "Illegal invocation". Deshalb hier fest binden.
+    this.fetch = fetchImpl === globalThis.fetch ? fetchImpl.bind(globalThis) : fetchImpl;
   }
 
   get kopfzeilen() {

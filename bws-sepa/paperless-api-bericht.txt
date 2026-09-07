@@ -1,0 +1,76 @@
+Bericht: Was die Paperless-API mit diesem Zugang hergibt
+Erstellt am 7.9.2026, 06:30:11
+Es wurden ausschließlich lesende Anfragen gestellt. Nichts wurde verändert.
+
+== Schritt 1: Zugang finden ==
+  https://app.paperless.io/api/v1/documents  ·  Bearer-Token   → 403
+      (Adresse existiert — hier wird nur der Token abgelehnt)
+  https://app.paperless.io/api/v1/documents  ·  Token-Präfix   → 403
+      (Adresse existiert — hier wird nur der Token abgelehnt)
+  https://app.paperless.io/api/v1/documents  ·  X-API-Key      → 403
+      (Adresse existiert — hier wird nur der Token abgelehnt)
+  https://app.paperless.io/api/v1/documents  ·  X-Api-Token    → 403
+      (Adresse existiert — hier wird nur der Token abgelehnt)
+  https://app.paperless.io/14644/api/v1/me  ·  Bearer-Token   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/v1/me  ·  Token-Präfix   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/v1/me  ·  X-API-Key      → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/v1/me  ·  X-Api-Token    → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/v1/documents  ·  Bearer-Token   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/v1/documents  ·  Token-Präfix   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/v1/documents  ·  X-API-Key      → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/v1/documents  ·  X-Api-Token    → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/me  ·  Bearer-Token   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/me  ·  Token-Präfix   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/me  ·  X-API-Key      → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/me  ·  X-Api-Token    → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/documents  ·  Bearer-Token   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/documents  ·  Token-Präfix   → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/documents  ·  X-API-Key      → Weboberfläche statt JSON (keine API-Adresse)
+  https://app.paperless.io/14644/api/documents  ·  X-Api-Token    → Weboberfläche statt JSON (keine API-Adresse)
+  Keine der geprüften Adressen hat mit 200 geantwortet.
+
+  Kein Zugang über die geratenen Adressen. Das heißt nicht, dass der Token
+  falsch ist — die Basisadresse kann eine andere sein. Sie steht in der
+  API-Dokumentation, die Frau Meßing geschickt hat. Dann erneut mit:
+     node scripts/api-erkunden.mjs --basis https://DIE-RICHTIGE-ADRESSE
+
+  Zur Sicherheit werden die Adressen trotzdem einmal durchprobiert:
+
+  Aber: https://app.paperless.io/api hat mit 401/403 geantwortet.
+  Diese Adresse gibt es also — dort wird nur der Token nicht angenommen.
+  Prüfe den Token, und ob er für diesen Bereich freigeschaltet ist.
+
+== Schritt 2: Was der Zugang erreicht ==
+  /v1/me                     → gibt es nicht
+  /v1/users                  → gibt es nicht
+  /v1/account                → gibt es nicht
+  /v1/teams                  → gibt es nicht
+  /v1/organizations          → gibt es nicht
+  /v1/documents              → nicht freigegeben
+  /v1/documents?limit=1      → nicht freigegeben
+  /v1/templates              → nicht freigegeben
+  /v1/contracts              → gibt es nicht
+  /v1/folders                → gibt es nicht
+  /v1/forms                  → nicht freigegeben
+  /v1/fields                 → gibt es nicht
+  /v1/form_fields            → gibt es nicht
+  /v1/signatures             → gibt es nicht
+  /v1/webhooks               → Status 400
+  /v1/teams/14644/documents  → gibt es nicht
+  /me                        → gibt es nicht
+  /users                     → gibt es nicht
+  /teams                     → gibt es nicht
+  /documents                 → gibt es nicht
+  /documents?limit=1         → gibt es nicht
+  /templates                 → gibt es nicht
+  /contracts                 → gibt es nicht
+  /forms                     → gibt es nicht
+  /openapi.json              → gibt es nicht
+  /swagger.json              → gibt es nicht
+  /docs                      → gibt es nicht
+
+== Schritt 3: Was das für die SEPA-Mandate heißt ==
+  Über diesen Weg ist nichts erreichbar. Nächster Schritt: die Basisadresse
+  aus der API-Dokumentation holen und das Skript damit erneut starten.
+
+Ende des Berichts.

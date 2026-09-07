@@ -14,8 +14,12 @@ Nach dem Schließen des Fensters ist nichts davon übrig.
 
 ## Der Weg durch das Werkzeug
 
-1. **Mandate holen** — über eine Datei (funktioniert heute) oder über die API.
-   Sammelscans mit mehreren Mandaten werden dabei in einzelne Mandate zerlegt.
+1. **Mandate holen** — drei Quellen stehen zur Wahl:
+   - **paperless.io** (der Regelfall): digital ausgefüllte Mandate, die Felder kommen
+     strukturiert an. Beim ersten Verbinden werden die Felder einmal zugeordnet.
+   - **Datei**: für eingescannte Papiermandate und Exporte. Sammelscans mit mehreren
+     Mandaten werden zerlegt.
+   - **paperless-ngx**: falls ein eigenes Dokumentenarchiv betrieben wird.
 2. **Lauf festlegen** — Gläubiger-ID, Fälligkeit, Betrag, Sequenz, Verwendungszweck.
 3. **Prüfen** — jede Zeile bekommt einen Befund. Rot hält sie aus dem Lauf heraus,
    Gelb heißt: aus der Texterkennung gelesen, vor dem Einzug am Beleg gegenlesen.
@@ -69,6 +73,12 @@ paperless.io digital ausgefüllt werden, entfällt das.
 | Schema der Mandatsreferenz | `BWS_<Nachname>-<Vorname des Kindes>` |
 | Zahlungsempfänger laut Mandat | BildungsWerkstatt e.V., Astrid-Lindgren-Str. 16, 81829 München |
 
+**Zum Unterstrich im Referenzschema:** Der SEPA-Basiszeichensatz kennt ihn nicht.
+`BWS_Meier-Lea` wird in der Datei zu `BWS Meier-Lea`. Der Einzug funktioniert, aber
+die Referenz weicht damit von der auf dem unterschriebenen Mandat ab. Das Werkzeug
+weist bei jedem betroffenen Mandat darauf hin. Sauber wäre, das Schema künftig auf
+`BWS-<Nachname>-<Vorname>` umzustellen.
+
 Die Gläubiger-ID ist in der Oberfläche vorbelegt. Die Mandatsreferenz steht auf
 den Belegen nicht ausgefüllt, sondern nur als Schema — das Werkzeug bildet sie
 daraus und weist darauf hin, dass sie mit der Buchhaltung abzugleichen ist.
@@ -87,6 +97,7 @@ damit beim Import keine Zeichensatzfrage offenbleibt. Details und die Feldbelegu
 index.html              Oberfläche
 src/iban.js             IBAN- und BIC-Prüfung (Mod 97)
 src/sepa-text.js        SEPA-Zeichensatz, Feldlängen, Verwendungszweck-Zeilen
+src/paperless-io.js     API-Zugriff auf paperless.io samt freier Feldzuordnung
 src/paperless.js        API-Zugriff auf paperless-ngx (nur lesend)
 src/bws-formular.js     Formulare der BildungsWerkstatt lesen, Sammelscans zerlegen
 src/ocr-iban.js         IBAN und BIC aus schlecht erkanntem Formulartext gewinnen

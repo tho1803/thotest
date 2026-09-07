@@ -10,6 +10,7 @@
  */
 
 import { pruefeIban, pruefeBic, normalisiereIban, bicPasstZuIban, IBAN_LAENGEN } from './iban.js';
+import { pruefeMandatsreferenz } from './sepa-text.js';
 
 /** Standardzuordnung Paperless-Custom-Field → Mandatsfeld. Anpassbar in der Oberfläche. */
 export const STANDARD_FELDZUORDNUNG = {
@@ -204,6 +205,62 @@ export function extrahiereMandat(dokument, optionen = {}) {
     // Ohne blockierenden Fehler kann die Zeile in den Lauf.
     uebernehmen: fehler.length === 0,
     // Nichts zu prüfen und nichts zu beanstanden.
+    einwandfrei: fehler.length === 0 && hinweise.length === 0
+  };
+}
+
+/**
+ * Baut ein Mandat aus Werten, die bereits strukturiert vorliegen — also aus
+ * einem digital ausgefüllten Formular. Hier gibt es nichts zu raten: Was
+ * fehlt oder nicht stimmt, ist ein Fehler, kein Prüfhinweis.
+ */
+export function mandatAusStrukturiertenFeldern(dokument, roh) {
+  const fehler = [];
+  const hinweise = [];
+
+  const ibanPruefung = pruefeIban(roh.iban);
+  if (!ibanPruefung.gueltig) fehler.push(ibanPruefung.fehler);
+
+  const bicPruefung = pruefeBic(roh.bic);
+  if (!bicPruefung.gueltig) fehler.push(bicPruefung.fehler);
+  else if (roh.bic && !bicPasstZuIban(roh.bic, roh.iban)) {
+    hinweise.push('BIC und IBAN gehören zu verschiedenen Ländern');
+  }
+
+  if (!roh.kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
+  if (!roh.mandatsId) fehler.push('Mandatsreferenz fehlt');
+  else {
+    const referenz = pruefeMandatsreferenz(roh.mandatsId);
+    if (!referenz.unveraendert) {
+      hinweise.push(
+        `Mandatsreferenz enthält ${referenz.ersetzt.join(' ')} — im SEPA-Zeichensatz nicht zulässig, ` +
+        `in der Datei steht "${referenz.sepaForm}"`
+      );
+    }
+  }
+
+  const mandatsDatum = zuIsoDatum(roh.mandatsDatum);
+  if (!mandatsDatum) fehler.push('Mandatsdatum fehlt');
+  else if (mandatsDatum > new Date().toISOString().slice(0, 10)) {
+    hinweise.push('Mandatsdatum liegt in der Zukunft');
+  }
+
+  return {
+    dokumentId: dokument.id ?? null,
+    titel: dokument.name ?? dokument.title ?? '',
+    kontoinhaber: roh.kontoinhaber || '',
+    kind: roh.kind || '',
+    iban: ibanPruefung.gueltig ? ibanPruefung.iban : (roh.iban || ''),
+    bic: bicPruefung.bic,
+    mandatsId: roh.mandatsId || '',
+    mandatsDatum,
+    betrag: zuBetrag(roh.betrag),
+    sequenz: 'RCUR',
+    quelle: { iban: 'feld', kontoinhaber: 'feld', mandatsId: 'feld', mandatsDatum: 'feld' },
+    fehler,
+    hinweise,
+    warnungen: [...fehler, ...hinweise],
+    uebernehmen: fehler.length === 0,
     einwandfrei: fehler.length === 0 && hinweise.length === 0
   };
 }

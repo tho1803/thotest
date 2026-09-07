@@ -25,10 +25,17 @@ const wert = (name, standard) => {
   return i >= 0 && argumente[i + 1] ? argumente[i + 1] : standard;
 };
 
+/** Team-Kennung der BildungsWerkstatt aus der Adresse app.paperless.io/14644/… */
+const TEAM = wert('team', '14644');
+
 const BASIS_ADRESSEN = [
-  wert('basis', 'https://api.paperless.io'),
+  ...(argumente.includes('--basis') ? [wert('basis', '')] : []),
   'https://app.paperless.io/api',
-  'https://api.paperless.io/public'
+  `https://app.paperless.io/api/${TEAM}`,
+  'https://api.paperless.io',
+  `https://api.paperless.io/teams/${TEAM}`,
+  'https://api.paperless.io/public',
+  `https://app.paperless.io/${TEAM}/api`
 ];
 
 /** Anmeldeverfahren, die bei solchen Diensten üblich sind. */
@@ -41,12 +48,14 @@ const ANMELDUNGEN = [
 
 /** Rein lesende Adressen, die es bei einem Vertragsdienst geben könnte. */
 const PFADE = [
-  '/v1/me', '/v1/users', '/v1/account', '/v1/organizations',
+  '/v1/me', '/v1/users', '/v1/account', '/v1/teams', '/v1/organizations',
   '/v1/documents', '/v1/documents?limit=1',
   '/v1/templates', '/v1/contracts', '/v1/folders', '/v1/forms',
-  '/v1/fields', '/v1/signatures', '/v1/webhooks',
-  '/me', '/users', '/documents', '/documents?limit=1', '/templates', '/contracts',
-  '/api/v1/documents', '/api/v1/me', '/openapi.json', '/swagger.json', '/docs'
+  '/v1/fields', '/v1/form_fields', '/v1/signatures', '/v1/webhooks',
+  `/v1/teams/${TEAM}/documents`,
+  '/me', '/users', '/teams', '/documents', '/documents?limit=1',
+  '/templates', '/contracts', '/forms',
+  '/openapi.json', '/swagger.json', '/docs'
 ];
 
 const ZEITGRENZE = 15000;
@@ -69,9 +78,13 @@ async function frage(adresse, kopfzeilen) {
     } else {
       auszug = (await antwort.text()).slice(0, 160).replace(/\s+/g, ' ');
     }
-    return { status: antwort.status, typ, felder, auszug };
+    // Entscheidend: app.paperless.io liefert auf unbekannte Adressen die
+    // normale Weboberfläche mit Status 200 aus. Nur eine JSON-Antwort ist
+    // ein echter API-Treffer.
+    const istApi = typ.includes('json');
+    return { status: antwort.status, typ, felder, auszug, istApi };
   } catch (fehler) {
-    return { status: 0, typ: '', felder: [], auszug: `keine Antwort: ${fehler.message}` };
+    return { status: 0, typ: '', felder: [], auszug: `keine Antwort: ${fehler.message}`, istApi: false };
   }
 }
 
@@ -101,20 +114,41 @@ sage('');
 sage('== Schritt 1: Zugang finden ==');
 let gefundeneBasis = null;
 let gefundeneAnmeldung = null;
+// Eine Adresse, die mit 401/403 antwortet, existiert — dort passt nur der
+// Token nicht. Das ist der beste Anhaltspunkt, wenn kein Zugang zustande kommt.
+let vermuteteBasis = null;
+
+const EINSTIEGE = ['/v1/me', '/v1/documents', '/me', '/documents'];
 
 for (const basis of BASIS_ADRESSEN) {
-  for (const anmeldung of ANMELDUNGEN) {
-    const ergebnis = await frage(`${basis}/v1/me`, anmeldung.kopf(token));
-    const marke = ergebnis.status === 200 ? 'GEHT' : String(ergebnis.status || '—');
-    sage(`  ${basis}/v1/me  ·  ${anmeldung.name.padEnd(14)} → ${marke}`);
-    if (ergebnis.status === 200) {
-      gefundeneBasis = basis;
-      gefundeneAnmeldung = anmeldung;
-      break;
+  if (!basis) continue;
+  for (const einstieg of EINSTIEGE) {
+    for (const anmeldung of ANMELDUNGEN) {
+      const ergebnis = await frage(`${basis}${einstieg}`, anmeldung.kopf(token));
+      // 401 ist die aufschlussreichste Antwort: die Adresse gibt es, nur der
+      // Token passt nicht. 404 heißt, hier ist gar nichts.
+      if (ergebnis.status === 0 || ergebnis.status === 404) continue;
+      if (ergebnis.status === 200 && !ergebnis.istApi) {
+        sage(`  ${basis}${einstieg}  ·  ${anmeldung.name.padEnd(14)} → Weboberfläche statt JSON (keine API-Adresse)`);
+        continue;
+      }
+      const marke = ergebnis.status === 200 ? 'GEHT' : String(ergebnis.status);
+      sage(`  ${basis}${einstieg}  ·  ${anmeldung.name.padEnd(14)} → ${marke}`);
+      if (ergebnis.status === 200) {
+        gefundeneBasis = basis;
+        gefundeneAnmeldung = anmeldung;
+        break;
+      }
+      if ((ergebnis.status === 401 || ergebnis.status === 403) && !gefundeneBasis) {
+        sage('      (Adresse existiert — hier wird nur der Token abgelehnt)');
+        if (!vermuteteBasis) vermuteteBasis = { basis, anmeldung };
+      }
     }
+    if (gefundeneBasis) break;
   }
   if (gefundeneBasis) break;
 }
+if (!gefundeneBasis) sage('  Keine der geprüften Adressen hat mit 200 geantwortet.');
 
 if (!gefundeneBasis) {
   sage('');
@@ -124,8 +158,17 @@ if (!gefundeneBasis) {
   sage('     node scripts/api-erkunden.mjs --basis https://DIE-RICHTIGE-ADRESSE');
   sage('');
   sage('  Zur Sicherheit werden die Adressen trotzdem einmal durchprobiert:');
-  gefundeneBasis = BASIS_ADRESSEN[0];
-  gefundeneAnmeldung = ANMELDUNGEN[0];
+  if (vermuteteBasis) {
+    sage('');
+    sage(`  Aber: ${vermuteteBasis.basis} hat mit 401/403 geantwortet.`);
+    sage('  Diese Adresse gibt es also — dort wird nur der Token nicht angenommen.');
+    sage('  Prüfe den Token, und ob er für diesen Bereich freigeschaltet ist.');
+    gefundeneBasis = vermuteteBasis.basis;
+    gefundeneAnmeldung = vermuteteBasis.anmeldung;
+  } else {
+    gefundeneBasis = BASIS_ADRESSEN.find(Boolean);
+    gefundeneAnmeldung = ANMELDUNGEN[0];
+  }
 } else {
   sage('');
   sage(`  Zugang steht: ${gefundeneBasis} mit ${gefundeneAnmeldung.name}`);
@@ -139,7 +182,9 @@ const erreichbar = [];
 
 for (const pfad of PFADE) {
   const ergebnis = await frage(`${gefundeneBasis}${pfad}`, kopfzeilen);
-  const deutung = {
+  const deutung = ergebnis.status === 200 && !ergebnis.istApi
+    ? 'Weboberfläche statt JSON — keine API-Adresse'
+    : {
     200: 'erreichbar',
     401: 'Token nicht akzeptiert',
     403: 'nicht freigegeben',
@@ -148,7 +193,7 @@ for (const pfad of PFADE) {
   }[ergebnis.status] ?? (ergebnis.status ? `Status ${ergebnis.status}` : 'keine Antwort');
 
   sage(`  ${pfad.padEnd(26)} → ${deutung}`);
-  if (ergebnis.status === 200) {
+  if (ergebnis.status === 200 && ergebnis.istApi) {
     erreichbar.push({ pfad, ...ergebnis });
     if (ergebnis.felder.length) {
       sage(`      Felder: ${ergebnis.felder.join(', ')}`);

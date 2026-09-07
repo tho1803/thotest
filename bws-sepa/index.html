@@ -21,35 +21,95 @@
 
   <!-- 1 ------------------------------------------------------------------ -->
   <section class="karte">
-    <h2><span class="schritt">1</span> Mandate aus Paperless holen</h2>
-    <p class="hilfe">
-      Die Seite fragt Paperless direkt ab. Der Token wird nur im Arbeitsspeicher gehalten und
-      beim Schließen des Fensters vergessen — er wird nicht gespeichert.
-    </p>
+    <h2><span class="schritt">1</span> Mandate holen</h2>
 
-    <div class="raster">
+    <div class="raster" style="margin-bottom:14px">
       <div>
-        <label for="paperlessUrl">Adresse der Paperless-Instanz</label>
-        <input type="text" id="paperlessUrl" placeholder="https://paperless.bws-ev.de" autocomplete="off">
-      </div>
-      <div>
-        <label for="paperlessToken">API-Token</label>
-        <input type="password" id="paperlessToken" placeholder="aus dem Benutzerprofil" autocomplete="off">
-      </div>
-      <div>
-        <label for="tagAuswahl">Tag der Mandate</label>
-        <select id="tagAuswahl"><option value="">— erst verbinden —</option></select>
+        <label for="quelle">Woher kommen die Mandate?</label>
+        <select id="quelle">
+          <option value="io" selected>paperless.io — digital ausgefüllte Mandate</option>
+          <option value="datei">Datei — Scan oder Export</option>
+          <option value="ngx">paperless-ngx — eigenes Dokumentenarchiv</option>
+        </select>
       </div>
     </div>
 
-    <div class="knopfreihe">
-      <button class="knopf" id="verbindenKnopf">Verbinden</button>
-      <button class="knopf gruen" id="ladenKnopf" disabled>Mandate laden</button>
-      <span class="hilfe">oder ohne Netzzugriff:</span>
-      <label class="knopf leer" for="jsonDatei" style="margin:0">JSON-Export öffnen</label>
-      <input type="file" id="jsonDatei" accept=".json,application/json" class="versteckt">
+    <!-- paperless.io -->
+    <div id="quelleIo">
+      <p class="hilfe">
+        Der Regelfall: Eltern füllen das Mandat in paperless.io aus, die Felder kommen
+        strukturiert an. Der Token wird nur im Arbeitsspeicher gehalten und beim Schließen
+        des Fensters vergessen.
+      </p>
+      <div class="raster">
+        <div>
+          <label for="ioUrl">Basisadresse der API</label>
+          <input type="text" id="ioUrl" value="https://app.paperless.io/api" autocomplete="off">
+        </div>
+        <div>
+          <label for="ioToken">API-Token</label>
+          <input type="password" id="ioToken" placeholder="aus den Kontoeinstellungen" autocomplete="off">
+        </div>
+      </div>
+      <div class="knopfreihe">
+        <button class="knopf" id="ioVerbindenKnopf">Verbinden und Felder ansehen</button>
+        <button class="knopf gruen" id="ioLadenKnopf" disabled>Alle Mandate laden</button>
+      </div>
     </div>
+
+    <!-- Datei -->
+    <div id="quelleDatei" class="versteckt">
+      <p class="hilfe">
+        Für eingescannte Mandate auf Papier und für Exportdateien. Erwartet wird JSON in der
+        Form <code>{"results":[{"id":1,"title":"…","content":"…"}]}</code>. Sammelscans mit
+        mehreren Mandaten werden dabei zerlegt.
+      </p>
+      <div class="knopfreihe">
+        <label class="knopf gruen" for="jsonDatei" style="margin:0">Datei öffnen</label>
+        <input type="file" id="jsonDatei" accept=".json,application/json" class="versteckt">
+      </div>
+    </div>
+
+    <!-- paperless-ngx -->
+    <div id="quelleNgx" class="versteckt">
+      <p class="hilfe">
+        Nur nötig, wenn die BildungsWerkstatt ein eigenes Dokumentenarchiv betreibt.
+      </p>
+      <div class="raster">
+        <div>
+          <label for="paperlessUrl">Adresse der Instanz</label>
+          <input type="text" id="paperlessUrl" placeholder="https://paperless.bws-ev.de" autocomplete="off">
+        </div>
+        <div>
+          <label for="paperlessToken">API-Token</label>
+          <input type="password" id="paperlessToken" placeholder="aus dem Benutzerprofil" autocomplete="off">
+        </div>
+        <div>
+          <label for="tagAuswahl">Tag der Mandate</label>
+          <select id="tagAuswahl"><option value="">— erst verbinden —</option></select>
+        </div>
+      </div>
+      <div class="knopfreihe">
+        <button class="knopf" id="verbindenKnopf">Verbinden</button>
+        <button class="knopf gruen" id="ladenKnopf" disabled>Mandate laden</button>
+      </div>
+    </div>
+
     <div id="ladeMeldung"></div>
+  </section>
+
+  <!-- 1b ----------------------------------------------------------------- -->
+  <section class="karte versteckt" id="zuordnungKarte">
+    <h2><span class="schritt">1b</span> Felder zuordnen</h2>
+    <p class="hilfe">
+      So heißen die Felder in eurem Mandat bei paperless.io. Zu jedem Feld steht der Wert
+      aus dem ersten Dokument, damit die Zuordnung nachprüfbar ist. Sie wird gespeichert
+      und muss nur einmal gemacht werden.
+    </p>
+    <div class="raster" id="zuordnungFelder"></div>
+    <div class="knopfreihe">
+      <button class="knopf leer" id="zuordnungZuruecksetzen">Zuordnung zurücksetzen</button>
+    </div>
   </section>
 
   <!-- 2 ------------------------------------------------------------------ -->

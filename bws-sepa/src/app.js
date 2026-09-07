@@ -8,21 +8,41 @@
  */
 
 import { PaperlessClient, ausJsonExport, felddefinitionenAusJson } from './paperless.js';
-import { extrahiereMandate, baueFeldIndex, zuDeutschemDatum } from './mandate.js';
+import {
+  extrahiereMandate, baueFeldIndex, zuDeutschemDatum, mandatAusStrukturiertenFeldern
+} from './mandate.js';
+import {
+  PaperlessIoClient, sammleFeldpfade, schlageZuordnungVor, mandatAusFeldern, listeAus
+} from './paperless-io.js';
 import { baueWindataCsv, dateiname } from './windata.js';
 import { baueSepaXml } from './sepa-xml.js';
 import { fuelleVorlage } from './vorlage.js';
 import * as bwsFormular from './bws-formular.js';
 
 const SPEICHER_SCHLUESSEL = 'bws-sepa-stammdaten';
+const ZUORDNUNG_SCHLUESSEL = 'bws-sepa-feldzuordnung';
+
+/** Die Angaben, die für einen Lastschrifteinzug gebraucht werden. */
+const ZUORDNUNGSZIELE = [
+  ['kontoinhaber', 'Kontoinhaber*in'],
+  ['iban', 'IBAN'],
+  ['bic', 'BIC (freiwillig)'],
+  ['mandatsId', 'Mandatsreferenz'],
+  ['mandatsDatum', 'Mandatsdatum'],
+  ['kind', 'Name des Kindes'],
+  ['betrag', 'Betrag (freiwillig)']
+];
 const $ = (id) => document.getElementById(id);
 
 let client = null;
+let ioClient = null;
 let mandate = [];
+let feldpfade = [];
+let zuordnung = {};
 
 /* ---------- Stammdaten (ohne Personenbezug) ------------------------------ */
 
-const STAMMFELDER = ['paperlessUrl', 'agName', 'agIban', 'agBic', 'agGlaeubigerId', 'vwzVorlage'];
+const STAMMFELDER = ['paperlessUrl', 'ioUrl', 'agName', 'agIban', 'agBic', 'agGlaeubigerId', 'vwzVorlage'];
 
 function ladeStammdaten() {
   try {
@@ -87,7 +107,126 @@ function auftraggeber() {
   };
 }
 
-/* ---------- Schritt 1: Paperless ---------------------------------------- */
+/* ---------- Quelle umschalten ------------------------------------------- */
+
+function zeigeQuelle() {
+  const gewaehlt = $('quelle').value;
+  $('quelleIo').classList.toggle('versteckt', gewaehlt !== 'io');
+  $('quelleDatei').classList.toggle('versteckt', gewaehlt !== 'datei');
+  $('quelleNgx').classList.toggle('versteckt', gewaehlt !== 'ngx');
+  if (gewaehlt !== 'io') $('zuordnungKarte').classList.add('versteckt');
+}
+
+/* ---------- Schritt 1: paperless.io ------------------------------------- */
+
+function ladeZuordnung() {
+  try {
+    const roh = localStorage.getItem(ZUORDNUNG_SCHLUESSEL);
+    zuordnung = roh ? JSON.parse(roh) : {};
+  } catch {
+    zuordnung = {};
+  }
+}
+
+function speichereZuordnung() {
+  try {
+    localStorage.setItem(ZUORDNUNG_SCHLUESSEL, JSON.stringify(zuordnung));
+  } catch {
+    /* Privates Fenster — kein Grund abzubrechen. */
+  }
+}
+
+/** Baut die Auswahllisten für die Feldzuordnung. */
+function zeigeZuordnung() {
+  const behaelter = $('zuordnungFelder');
+  behaelter.innerHTML = '';
+
+  for (const [ziel, beschriftung] of ZUORDNUNGSZIELE) {
+    const feld = document.createElement('div');
+    const auswahl = feldpfade.map((f) =>
+      `<option value="${f.pfad}" ${zuordnung[ziel] === f.pfad ? 'selected' : ''}>` +
+      `${f.pfad} — ${f.beispiel}</option>`).join('');
+    feld.innerHTML = `
+      <label for="zu_${ziel}">${beschriftung}</label>
+      <select id="zu_${ziel}" data-ziel="${ziel}">
+        <option value="">— nicht zugeordnet —</option>
+        ${auswahl}
+      </select>`;
+    behaelter.appendChild(feld);
+  }
+
+  behaelter.addEventListener('change', (ereignis) => {
+    const ziel = ereignis.target.dataset.ziel;
+    if (!ziel) return;
+    zuordnung[ziel] = ereignis.target.value;
+    speichereZuordnung();
+  });
+
+  $('zuordnungKarte').classList.remove('versteckt');
+}
+
+async function ioVerbinden() {
+  const url = $('ioUrl').value.trim();
+  const token = $('ioToken').value.trim();
+  if (!url || !token) {
+    meldung('ladeMeldung', 'warnung', 'Adresse und Token werden beide gebraucht.');
+    return;
+  }
+
+  $('ioVerbindenKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Verbindung wird geprüft …');
+  try {
+    ioClient = new PaperlessIoClient(url, token);
+    const { probe } = await ioClient.pruefeVerbindung();
+    const erstes = listeAus(probe)[0];
+    if (!erstes) {
+      meldung('ladeMeldung', 'warnung',
+        'Die Verbindung steht, aber es kam kein Dokument zurück. Liegt in paperless.io ' +
+        'schon ein ausgefülltes Mandat?');
+      return;
+    }
+
+    feldpfade = sammleFeldpfade(erstes);
+    if (!Object.keys(zuordnung).length) zuordnung = schlageZuordnungVor(feldpfade);
+    zeigeZuordnung();
+    $('ioLadenKnopf').disabled = false;
+    meldung('ladeMeldung', 'gut',
+      `Verbunden. Im ersten Dokument stecken ${feldpfade.length} Felder — bitte unten zuordnen.`);
+    speichereStammdaten();
+  } catch (fehler) {
+    ioClient = null;
+    meldung('ladeMeldung', 'fehler', fehler.message);
+  } finally {
+    $('ioVerbindenKnopf').disabled = false;
+  }
+}
+
+async function ioMandateLaden() {
+  if (!ioClient) return;
+  if (!zuordnung.iban) {
+    meldung('ladeMeldung', 'warnung', 'Ohne zugeordnete IBAN geht es nicht.');
+    return;
+  }
+
+  $('ioLadenKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Mandate werden geladen …');
+  try {
+    const dokumente = await ioClient.holeDokumente({
+      beiFortschritt: (anzahl) => meldung('ladeMeldung', 'info', `Mandate werden geladen … ${anzahl}`)
+    });
+    mandate = dokumente
+      .map((d) => mandatAusStrukturiertenFeldern(d, mandatAusFeldern(d, zuordnung)))
+      .sort((a, b) => a.kontoinhaber.localeCompare(b.kontoinhaber, 'de'));
+    zeigeMandate();
+    meldung('ladeMeldung', 'gut', `${mandate.length} Mandate aus paperless.io gelesen.`);
+  } catch (fehler) {
+    meldung('ladeMeldung', 'fehler', fehler.message);
+  } finally {
+    $('ioLadenKnopf').disabled = false;
+  }
+}
+
+/* ---------- Schritt 1: paperless-ngx ------------------------------------ */
 
 async function verbinden() {
   const url = $('paperlessUrl').value.trim();
@@ -350,6 +489,17 @@ document.addEventListener('DOMContentLoaded', () => {
   $('termin').value = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() + 7)
     .toISOString().slice(0, 10);
 
+  ladeZuordnung();
+  zeigeQuelle();
+  $('quelle').addEventListener('change', zeigeQuelle);
+  $('ioVerbindenKnopf').addEventListener('click', ioVerbinden);
+  $('ioLadenKnopf').addEventListener('click', ioMandateLaden);
+  $('zuordnungZuruecksetzen').addEventListener('click', () => {
+    zuordnung = schlageZuordnungVor(feldpfade);
+    speichereZuordnung();
+    zeigeZuordnung();
+    meldung('ladeMeldung', 'gut', 'Die Zuordnung wurde auf den Vorschlag zurückgesetzt.');
+  });
   $('verbindenKnopf').addEventListener('click', verbinden);
   $('ladenKnopf').addEventListener('click', mandateLaden);
   $('jsonDatei').addEventListener('change', jsonGeladen);

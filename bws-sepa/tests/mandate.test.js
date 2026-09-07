@@ -152,3 +152,45 @@ test('ein Mandat aus gepflegten Feldern gilt als einwandfrei', () => {
   assert.deepEqual(mandat.fehler, []);
   assert.deepEqual(mandat.hinweise, []);
 });
+
+test('baut ein Mandat aus digital ausgefüllten Feldern ohne Prüfhinweise', async () => {
+  const { mandatAusStrukturiertenFeldern } = await import('../src/mandate.js');
+  const mandat = mandatAusStrukturiertenFeldern(
+    { id: 'doc_1', name: 'Mandat Beispiel' },
+    {
+      kontoinhaber: 'Anna Beispiel', kind: 'Lea Beispiel',
+      iban: 'DE02120300000000202051', bic: 'BYLADEM1001',
+      mandatsId: 'BWS-Beispiel-Lea', mandatsDatum: '2026-09-02', betrag: '87,50'
+    }
+  );
+  assert.equal(mandat.uebernehmen, true);
+  assert.equal(mandat.einwandfrei, true, 'digitale Felder brauchen kein Gegenlesen');
+  assert.equal(mandat.betrag, 87.5);
+  assert.equal(mandat.mandatsDatum, '2026-09-02');
+});
+
+test('weist auf den Unterstrich in der Mandatsreferenz hin', async () => {
+  const { mandatAusStrukturiertenFeldern } = await import('../src/mandate.js');
+  // Das Schema der BildungsWerkstatt lautet BWS_Nachname-Vorname. Der
+  // Unterstrich gehört nicht zum SEPA-Zeichensatz und würde in der Datei
+  // zu einem Leerzeichen — das darf nicht unbemerkt geschehen.
+  const mandat = mandatAusStrukturiertenFeldern(
+    { id: 'doc_3' },
+    {
+      kontoinhaber: 'Anna Beispiel', iban: 'DE02120300000000202051',
+      mandatsId: 'BWS_Beispiel-Lea', mandatsDatum: '2026-09-02'
+    }
+  );
+  assert.equal(mandat.uebernehmen, true, 'der Einzug bleibt möglich');
+  assert.equal(mandat.einwandfrei, false);
+  assert.ok(mandat.hinweise.some((h) => /nicht zulässig/.test(h)));
+  assert.ok(mandat.hinweise.some((h) => /BWS Beispiel-Lea/.test(h)));
+});
+
+test('meldet fehlende digitale Felder als Fehler, nicht als Hinweis', async () => {
+  const { mandatAusStrukturiertenFeldern } = await import('../src/mandate.js');
+  const mandat = mandatAusStrukturiertenFeldern({ id: 'doc_2' }, { iban: 'DE00000000000000000000' });
+  assert.equal(mandat.uebernehmen, false);
+  assert.ok(mandat.fehler.length >= 3);
+  assert.deepEqual(mandat.hinweise, []);
+});

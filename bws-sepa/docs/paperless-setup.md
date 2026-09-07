@@ -26,11 +26,40 @@ Das Werkzeug erkennt die Formulare der BildungsWerkstatt an ihrem Wortlaut,
 zerlegt Sammelscans in einzelne Mandate und liest je Mandat Kontoinhaber\*in,
 Kind, IBAN, BIC und Unterschriftsdatum.
 
-## Weg 2: paperless.io über die API
+## Weg 2: paperless.io über die API — der Regelfall
 
-Die Basisadresse und das Anmeldeverfahren stehen in der API-Dokumentation
-(<https://developers.paperless.io/docs/api>). Beides ist von außen nicht zu
-erraten, deshalb liegt ein Erkundungsskript bei:
+Konto der BildungsWerkstatt: <https://app.paperless.io/14644/dashboard/mine>
+
+Nach allem, was sich von außen prüfen lässt, liegt die API unter
+`https://app.paperless.io/api` mit Bearer-Token: Ein Aufruf von
+`/v1/documents` ohne gültigen Token wird mit **403** beantwortet, nicht mit
+404. Die Adresse existiert also und die API antwortet — bestätigt ist das
+erst mit einem echten Token.
+
+### Felder zuordnen
+
+Wie paperless.io die ausgefüllten Formularfelder benennt, entscheidet der
+Anbieter. Deshalb rät das Werkzeug nicht: Beim ersten Verbinden holt es ein
+Dokument, sammelt alle enthaltenen Felder ein und zeigt sie mit ihrem Wert
+aus diesem Dokument zur Auswahl an — wie die Feldzuordnung beim Import in
+windata. Zugeordnet werden:
+
+Kontoinhaber\*in · IBAN · BIC · Mandatsreferenz · Mandatsdatum ·
+Name des Kindes · Betrag
+
+Die Zuordnung bleibt im Browser gespeichert und ist nur einmal nötig. Ein
+Vorschlag wird anhand der Feldnamen gemacht und lässt sich überall ändern.
+
+### Wenn der Browser die Anfrage blockiert
+
+Erlaubt paperless.io die Anfrage von einer lokal geöffneten Seite nicht
+(CORS), meldet das Werkzeug das ausdrücklich. Dann bleibt der Weg über eine
+Datei — oder paperless.io gibt die Adresse `http://localhost:8080` frei.
+
+### Was der Zugang hergibt
+
+Beides — Basisadresse und Anmeldeverfahren — lässt sich mit dem beiliegenden
+Skript nachprüfen:
 
 ```bash
 node scripts/api-erkunden.mjs --basis https://DIE-BASISADRESSE

@@ -76,3 +76,21 @@ export function verwendungszweckZeilen(text, maxZeilen = 14, zeilenLaenge = 27) 
   if (aktuell) zeilen.push(aktuell);
   return zeilen.slice(0, maxZeilen);
 }
+
+/**
+ * Prüft, ob eine Mandatsreferenz unverändert durch den SEPA-Zeichensatz geht.
+ *
+ * Das ist keine Förmlichkeit: Die Referenz muss der auf dem unterschriebenen
+ * Mandat entsprechen. Der Unterstrich im Schema der BildungsWerkstatt
+ * (BWS_Nachname-Vorname) gehört nicht zum erlaubten Zeichenvorrat und würde
+ * in der Datei zu einem Leerzeichen — die Abweichung soll sichtbar sein,
+ * statt stillschweigend zu passieren.
+ *
+ * @returns {{unveraendert: boolean, sepaForm: string, ersetzt: string[]}}
+ */
+export function pruefeMandatsreferenz(referenz) {
+  const original = String(referenz ?? '');
+  const sepaForm = sepaText(original);
+  const ersetzt = [...new Set([...original].filter((z) => /[^A-Za-z0-9/?:().,'+\- ]/.test(z)))];
+  return { unveraendert: original === sepaForm, sepaForm, ersetzt };
+}
