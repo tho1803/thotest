@@ -1,0 +1,91 @@
+{
+  "count": 4,
+  "next": null,
+  "results": [
+    {
+      "id": 101,
+      "title": "SEPA-Mandat Musterfrau, Maria",
+      "created": "2026-03-14",
+      "custom_fields": [],
+      "content": "SEPA-Lastschriftmandat\nBildungsWerkstatt e.V., Paul-Wassermann-Str. 15, 81829 Muenchen\nGlaeubiger-Identifikationsnummer: DE98ZZZ09999999999\nMandatsreferenz: BWS-2026-0042\n\nIch ermaechtige die BildungsWerkstatt e.V., wiederkehrende Zahlungen von meinem Konto mittels Lastschrift einzuziehen.\n\nKontoinhaber: Maria Musterfrau\nStrasse und Hausnummer: Beispielweg 7\nPLZ und Ort: 81829 Muenchen\nIBAN: DE02 1203 0000 0000 2020 51\nBIC: BYLADEM1001\n\nMuenchen, 14.03.2026\nOrt, Datum, Unterschrift"
+    },
+    {
+      "id": 102,
+      "title": "SEPA-Mandat Beispiel, Anna",
+      "created": "2026-02-02",
+      "custom_fields": [
+        {
+          "field": 1,
+          "value": "DE02120300000000202051"
+        },
+        {
+          "field": 2,
+          "value": "BWS-2026-0043"
+        },
+        {
+          "field": 3,
+          "value": "Anna Beispiel"
+        },
+        {
+          "field": 4,
+          "value": "2026-02-02"
+        },
+        {
+          "field": 5,
+          "value": "Lea Beispiel"
+        },
+        {
+          "field": 6,
+          "value": "87,50"
+        }
+      ],
+      "content": "SEPA-Lastschriftmandat, Daten sind in den Custom Fields gepflegt."
+    },
+    {
+      "id": 103,
+      "title": "SEPA-Mandat Grün, Jörg",
+      "created": "2026-01-20",
+      "custom_fields": [],
+      "content": "SEPA-Lastschriftmandat\nMandatsreferenz: BWS-2026-0044\nKontoinhaber: Jörg Grün\nIBAN: DE89 3704 0044 0532 0130 00\nBIC: COBADEFFXXX\nOrt, Datum: 20.01.2026"
+    },
+    {
+      "id": 104,
+      "title": "SEPA-Mandat unleserlich (Testfall)",
+      "created": "2026-01-05",
+      "custom_fields": [],
+      "content": "SEPA-Lastschriftmandat\nKontoinhaber: Peter Schlecht-Gescannt\nIBAN: DE00 1111 2222 3333 4444 55\nOrt, Datum: 05.01.2026"
+    }
+  ],
+  "custom_fields_definition": [
+    {
+      "id": 1,
+      "name": "IBAN",
+      "data_type": "string"
+    },
+    {
+      "id": 2,
+      "name": "Mandatsreferenz",
+      "data_type": "string"
+    },
+    {
+      "id": 3,
+      "name": "Kontoinhaber",
+      "data_type": "string"
+    },
+    {
+      "id": 4,
+      "name": "Mandatsdatum",
+      "data_type": "date"
+    },
+    {
+      "id": 5,
+      "name": "Kind",
+      "data_type": "string"
+    },
+    {
+      "id": 6,
+      "name": "Monatsbeitrag",
+      "data_type": "monetary"
+    }
+  ]
+}

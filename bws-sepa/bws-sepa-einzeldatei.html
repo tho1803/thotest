@@ -1,0 +1,2670 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEPA-Lastschriften · BildungsWerkstatt e.V.</title>
+<style>
+/* BildungsWerkstatt e.V. — Farben, Typografie und Bausteine für dieses Werkzeug.
+   Übernommen aus dem BWS-Designsystem (Blau #0069B4, Grün #76B82A auf Weiß).
+
+   Bewusst ohne Webfonts von Google: die Seite verarbeitet Bankdaten und soll
+   dabei keine einzige Verbindung nach außen aufbauen. Sie läuft deshalb auch
+   vollständig offline. Systemschriften kommen dem BWS-Schriftbild nahe genug. */
+
+:root {
+  --blue-50:#e8f2fa; --blue-100:#c9e1f3; --blue-200:#95c4e6; --blue-500:#0069b4;
+  --blue-600:#005a9c; --blue-700:#004a80;
+  --green-50:#f1f8e6; --green-100:#e0f0c8; --green-500:#76b82a; --green-600:#639d20; --green-700:#4f7d1c;
+  --sun-500:#f0b21f; --sun-soft:#fdf2cf;
+  --danger:#d6453f; --danger-soft:#fbe4e3;
+  --ink-900:#1b2530; --ink-700:#3a4651; --ink-500:#6c7884; --ink-400:#97a2ad;
+  --ink-300:#c2c9d0; --ink-200:#dde2e7; --ink-100:#ecf0f3; --ink-50:#f5f7f9; --white:#fff;
+  --radius:14px; --radius-pill:999px;
+  --schatten:0 1px 2px rgba(27,37,48,.06), 0 8px 24px rgba(27,37,48,.08);
+  --font:"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin:0; font-family:var(--font); color:var(--ink-900);
+  background:var(--ink-50); line-height:1.55; font-size:15px;
+}
+h1,h2,h3 { line-height:1.25; margin:0 0 .4em; font-weight:700; }
+h1 { font-size:1.6rem; } h2 { font-size:1.15rem; } h3 { font-size:1rem; }
+p { margin:0 0 .8em; }
+a { color:var(--blue-600); }
+code, .mono { font-family:var(--font-mono); font-size:.86em; }
+
+.kopf {
+  background:var(--white); border-bottom:3px solid var(--blue-500);
+  padding:14px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.kopf img { height:44px; }
+.kopf .titel { font-weight:700; font-size:1.05rem; }
+.kopf .unterzeile { color:var(--ink-500); font-size:.85rem; }
+.kopf .abstand { margin-left:auto; }
+
+main { max-width:1180px; margin:0 auto; padding:22px 24px 80px; }
+
+.karte {
+  background:var(--white); border:1px solid var(--ink-200); border-radius:var(--radius);
+  padding:20px 22px; margin-bottom:18px; box-shadow:var(--schatten);
+}
+.karte > h2 { display:flex; align-items:center; gap:10px; }
+.schritt {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:26px; height:26px; border-radius:var(--radius-pill); flex:0 0 auto;
+  background:var(--blue-500); color:var(--white); font-size:.85rem; font-weight:700;
+}
+.hilfe { color:var(--ink-500); font-size:.87rem; }
+
+.raster { display:grid; gap:14px; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); }
+label { display:block; font-weight:600; font-size:.86rem; margin-bottom:4px; color:var(--ink-700); }
+input[type=text], input[type=password], input[type=number], input[type=date], select, textarea {
+  width:100%; padding:9px 11px; border:1px solid var(--ink-300); border-radius:10px;
+  font-family:var(--font); font-size:.92rem; background:var(--white); color:var(--ink-900);
+}
+input:focus, select:focus, textarea:focus { outline:2px solid var(--blue-200); border-color:var(--blue-500); }
+input[readonly] { background:var(--ink-50); }
+
+.knopf {
+  display:inline-flex; align-items:center; gap:8px; border:0; cursor:pointer;
+  padding:10px 20px; border-radius:var(--radius-pill); font-family:var(--font);
+  font-weight:600; font-size:.92rem; background:var(--blue-500); color:var(--white);
+}
+.knopf:hover { background:var(--blue-600); }
+.knopf:disabled { background:var(--ink-300); cursor:not-allowed; }
+.knopf.gruen { background:var(--green-500); }
+.knopf.gruen:hover { background:var(--green-600); }
+.knopf.leer { background:transparent; color:var(--blue-600); border:1.5px solid var(--blue-200); }
+.knopf.leer:hover { background:var(--blue-50); }
+.knopfreihe { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+
+.hinweis { border-radius:10px; padding:11px 14px; font-size:.88rem; margin:12px 0; border:1px solid; }
+.hinweis.info { background:var(--blue-50); border-color:var(--blue-100); }
+.hinweis.gut { background:var(--green-50); border-color:var(--green-100); }
+.hinweis.warnung { background:var(--sun-soft); border-color:#f6dfa0; }
+.hinweis.fehler { background:var(--danger-soft); border-color:#f3c4c2; }
+
+table { width:100%; min-width:980px; border-collapse:collapse; font-size:.87rem; }
+th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--ink-100); vertical-align:middle; }
+th { background:var(--ink-50); font-weight:600; color:var(--ink-700); position:sticky; top:0; z-index:1; }
+tbody tr:hover { background:var(--blue-50); }
+tr.nichtuebernehmen { background:var(--danger-soft); }
+tr.nichtuebernehmen:hover { background:#f7d6d4; }
+.tabellenrahmen { max-height:60vh; overflow:auto; border:1px solid var(--ink-200); border-radius:10px; }
+td input, td select { padding:5px 7px; font-size:.85rem; border-radius:7px; }
+
+.marke {
+  display:inline-block; padding:2px 9px; border-radius:var(--radius-pill);
+  font-size:.74rem; font-weight:600; white-space:nowrap; cursor:help;
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; vertical-align:middle;
+}
+/* Mehrere Befunde stehen untereinander, damit die Spalte schmal bleibt. */
+td .marke + .marke { margin-top:3px; }
+td .marke { display:block; width:fit-content; }
+.marke.gut { background:var(--green-100); color:var(--green-700); }
+.marke.pruefen { background:var(--sun-soft); color:#8a6410; }
+.marke.fehler { background:var(--danger-soft); color:var(--danger); }
+.marke.feld { background:var(--blue-50); color:var(--blue-700); }
+
+.zahlenreihe { display:flex; gap:26px; flex-wrap:wrap; margin:10px 0 4px; }
+.zahl { font-size:1.5rem; font-weight:700; color:var(--blue-600); }
+.zahl.gruen { color:var(--green-600); }
+.zahl-etikett { font-size:.78rem; color:var(--ink-500); text-transform:uppercase; letter-spacing:.04em; }
+
+.fusszeile {
+  border-top:1px solid var(--ink-200); margin-top:8px; padding:18px 24px;
+  font-size:.75rem; color:var(--ink-500); background:var(--white);
+}
+.versteckt { display:none !important; }
+
+</style>
+</head>
+<body>
+
+<header class="kopf">
+  <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMMAAABgCAYAAACg98bqAAAQAElEQVR4AeydB4BVxfX/P3Pva9uX3jtYAAUBFbHE3mJLNEajiSZGE0s0Gk0ssSaWxN4TjUZjiRp7L9GfBQVRpErvLLDswvb23rv3zv97H22JIG35J8C7e+fO3Jkz55w5c87MmXOXxbHZKyuBrAQyEnDIXlkJZCWQkUDWGDJiyD6yEoCsMWS1ICuBlRLIGsNKQWSzrAS2cWPITmBWAi0ngawxtJwss5i2cQlkjWEbn8As+y0ngawxtJwss5i2cQlkjWEbn8As+y0ngawxtJwsNx1Ttsf/lASyxvA/NR1ZZv6bEsgaw+ZKP/AhsFjrK/OVB/g2pXJKZU+5r+RhMzBpENzmkgr7Wd8TPh/PhnQsvsj7wh2+B6oLhD/MQ9hs2jwJZI1h8+RGoH4Wj7CQVh5kDMEnbS3pIKxPY0KDkaJCGotRj82/m0giSwC/SQbWSJNJ6TUpGimsaFrRMTKIzaeQ7Zk1hs3UAWMd2UFAU1BHTd1Mnp94HVf/ezgXvNWDK9/fm6em3MLMuukk0zKbILKZVNZ0cxoDZiyv4PqX57HHpSNpd+br9L3wA856+AumlZTSmKojZdw1HbKlTZZA1hg2QWTh6hu6ImFug0YaUg2MnP8Mv//kKF5eeDvzmyZRFVQyPzWJN+fexH2jT+Tzpf8gJRcn00ert8WKogxEzw3dvuAD7S5NqTRvTC/j1JvHcPMzU5laUk26DkpLG3nmvVJGXDGKu94ooaamAT/QThGIyv+HXWJD/G9r7Vlj2IQZs1JMSyNWLlGTlO7DBU/z/MwbqPFLwMg1ciwRuS+RUOGdNGXJBTwx9TLenn03TV6datPIz1EeGoSKG7j9IEmdl+Rv/57Gefd9wdcLUwQ2gq/kOQ6edoKUzaG2yeXOF2Zxx2tTKKuTlQRypezG0dgACztUc9YYNmW6pfDWkxJ6Lh8tfJQXZ99AZbpSyr1uJEaOVEXa4/WFf+aTBU/SmNSOoBVb6/a6O/xHbTLl8OKo+dz0whyWVefgExWEVVpzWzeJY5ZRlfR58M353P/aLOqs0QF7y84oayjsOKWsMXzbXGt1tUqBUphbKVmDbeT9Bffw1NdX0ZSuwNHheH0ofMcjJvjapjqen/EHPl30Dx2uU2h51+4SmoRVVxmInuEd0ghC10gp7Xm8/tV8rnpsGuWVPr4TEAgfq00v7GtxfINvilUboy5pue2Fxdzy3HiqmxpFxltBR/hC/Nn07RLIGsO3yCdUt8Cmtb6HbkeKxnQDH817jJdm3orvNoGU04TJrBtJeJzNtAumxl8ug/i9+j8hI6qV8qalqIHyYK3Oablfdckk//xkFpc8Oo6y6kDukKYppKGkczuZwJTKYR44Ktgo1gTiM0pKRnP/q4u47ZWvKa2uUkQ3JTpy4cheG5KApLwhkB273SBF8vTUCvzRgn/w8pw7qU5XbbJQdJygwmvi2dlX8t6cv+jwncZYXwq8NqpkyvL3D2dyxRMztCPE1B6VzodmuTbcut6sMdqp6qhLW/76dgn3vzFHvHpymbLTzDevb9RkpfQNkfxnhYun1XdkyYM8M+Va6pPlUk7/P4E2+B5oxY7o4F3XkOKlOXcwZtFz+k4QGsSarqHKvz9xMTc9PYfyKimxZidwQlpa/deArbfk+A4+BfgmQV2jx+0vLOL2lyZiMzjW2y3bsFICEvfKUjbLSMDKv/aDNGn5+mHUqC5Zw79n38ffJ12JF6nB6MAauj4Z4E14OFiMk8JEGvVtopJnpl/Bh/MepylVlQm91jU18NjIGZz/0HgqFBBKGxmAblmelNmun1IGRu3GErgrDcfIkIjJZbLc+q+FXPPPcZRUlONrZwoUEl4/sh27JWsM65h/QyoTKU2mk4oaPcUrc+/TMTm9DsjNqzIyjEq/mudmXS2DeJpaGdyzo+bw+0emU17hyjUKp2Xts8SmUgpdJqOv1oEcp4ffWcwDb86lojGF50c3FdUOAx9KfYcZ7MYP1CWlGP7HC//GSzNuorapVF2tUsvcoZo7gRXeOp7Xx7kbXv6LVu9FLK/x8XS4CExaG8KW0TOBwdq48MWpqfd0fljEXa9Mk6HpDNQyw9jusGSNQVNqAylh4JGyTQSK5jSlm/ho7v08OeVqfWIrxyhytDmukVCv83ak6uHW4xOhY14/Tt7rYAb3TBC1vlLGVLSep5FdrE7rRPSflc1cJqszijUOGF9niAh1qYDbXprLtf8aJzesgnRaodegnuy1RgKS1pqX//nS1mLQGBzTpEipVZSnlvfnP8Ezs25WHCnF1ris3CSjcOgerQ/i3IEPMrTXIO45oz+H79MGE7U4csp8cluMdGgUmdBr4HLvy4u47eVZLK1rwvfjLUZje0CUNYbMLFpQAD+lL7wfL3ycN2ffqm8KdVLZTGOLPwwuQ9oexem73UTbgn56c+nWNpdbf7I7p+7dETcS0Q5By10antH4PCdCyrP87d0SHnh9Do1equVobAeYnO1gDJs3BLlF6SCQa5TKuEa+b/h0gcKn066myl+I6zRinBb0r4OI/HVHB9h8+hTtx2kDbqZr/kAS+jIXdWPE4nn07tCa687YlWP7d4Fokqhn0NFCTlXjpo+xmcukDxoERoRU55uI3KSA216ZzY0vj6cxVSuXqZ4gaNh0GttZD2c7G89GDyeQM+KaelyFUZu8Rt6Ra/TY1MvxdHjdaCSbABgo1m9thAGFwzhr4B20y++GdVeEQJuj6VyYy01nd+XonbvjJzwck8K3ieYgW1Y2MjAZhtU3iTsVdv3jc1MVZUrLGKJbhnc76L3DGgMm0PQ5Olh6/N+8R3l1xrXojIlV7da4wzPCsNZHc/bQB+lc2B/XxETLwdGhuTm9iGPo1a41t13Qh1OHdSJq4jpmtyBXQiVzwHfJHKwffHsed78yh7Lazdh9mjO+HZSd7WAMmzUEX/5H4CUZtfCfvDT3z9T6S6WgoUL4m4VvnZ3kGhFEIUiwe+uj+EH/a+mc249Q4R2tzi6uVn5pZfPOYQQo4tKzTWvOObYHndu6BPY/YJrDb3RZViDzw1gC0bUysQCH2gaHB9+Zz71vTSHtNWhBCETPU1jWbjTm7QXQ2V4GsqnjcEjxRdmnPD3j19R5ywmVxEhR5EXQcpdHUit9p9we/HDXK7Uj9CNwtSOZKMaYTNJjbXIGoor6NPoedz4/mYXlSYzUd22gTXwTTiEhk9AVvitDPHhOjLr6gDtfKOHuDxZi0rWEC0XYvKMlZ0cb8KrxVicreX3qH6nT6rhKN1a1tVRutfonfJ8DO59Jj4KBROTyhOutseFz3VQC65AOmnheX6RfG1eF77TErrBuWmGtoUEGmlYwN8Hdz01jxlIdpMMPHGHjDpZ2SGOw1jK9/FNKm2YTtUk5D+tXzi3RBysry7UxRvQ8DeOEu4ErByWCNov1orXqlJYyPvbeIjyiGEW8rBGi9fbYnIZwvCuT+AtISAY+1foC/uq4Ur7NWDeH2rbSx9lWGG1pPsvrF9CkyJFrLSbYWmLwKc7vTX68szwSIyMwmZzwXMC6r0DVNY1pFpQFGEK+lAwtd4W4miW7khcrFzGp8PKcpUkCIi1HbxvCJElvQ9y2IKtGiuZI3Sy6QuVQtlVu44mKFNtsPJEVkMFWYefbkBpjCH81Be0T64Db7quc7X6E6xlgm9xuRN04RpEau0L71gO5+dVG/n9lwxIakkux1hMif2XKmKDK37xdLPmJOJ3b+eJNUR29W63V34RsoRobiE5Iy8cxPt075Ml4/RZCvm2h2SGNwRjDTu33osDtjOe6UoatM2mOPrLVyvP/vOSf2NAVy1hdaHnrVzZjDHGBnHpgFwLH0XcIixP23Tos4sjQrGhaHWQSCYcjh3ZCVVuJ2v82Wud/m72tx12rWDe+1+cCokGhVsL1r9RbwkEQdjY+7yx8hMV1k/H8NFhpOt9Gz8GVz/6zg3dj376ujtAyHPnzIaqtksIzk7Qgbho477vdGdQpRwaiiq1C7H8b6Y45as1JoIjNfl1/wIk7XUBxtA02dJesI2VVUntL3IHjEdf3gtKGebww9QaW1E3F+uFHrRC7lDyzBNvwZXUy2knksBBXsPPa0wZTVJwj0wlhV4NsYSGkpyT3iDAp/FscDzjnqN789ns7EzFxMva6hVS2xe4tN/Pb2OjlFeBGohza7TyO7HkB+ZFWUr98QqNoqaG4UnYv/KeYJsmXy97jmcnXsKxpPoS6LX0UMZEKX5StvIMgqfaA5Q0+T74/n4b6cDeJrmxtgSxDN7NnZZDlRQ0/Pbgblx0/kMJ4vmQSJ+JGMcZk2refx4ZHssMagwl3ArkfBYk8jux9MUf3+AUxmmAr6YBn6vmi6m3uGf1DljXOxQt82UIo/lA7WX0FNqH2es67cwxPfFZOvRd+FAt/TWQ1yBYXtClitBpEbR2nHtiWq08dSKei2Bbj3dYRhLOxrY9hs/g3WKwUL/zC6zou3+19OSf3uZgcN9wd1Br6CmHaLOzf7BTuOEbnh9n103l0wiUsr58l+j6BfPbwI6AvlyXMy2tqueqx6bw+bRmOp3Zycf28byLcpJrQ4JREK+xmNK4CJ80Zh/Xilp8NIScaw8o4wrYdOe24xuDooKoUMTEchVhjsQhH9b6WE3pfRHG0kzz3PClry62WjgzBCRXerWVS1fs8OflqltROI/Ag0C6RSnssrKnnumcm89zoxXhNETxH9I3BD12tLdFS2YEGIwyZAkW5Lmcf0ZObfzKMVrE84nKLwt+OFcAOfTs79OhXD147gbHEIoZDep7HUXKZcp0oqI6tcPnoDFHxFo9NvIjKphJSeq+pb+Syhz/nqU/LCP9yn+94LUjZZoZitPrHnUZ+fHBHLv7+LhTHstPfXMhZaUga4THB2jiBjCEezdeB+iJO6HnOisiKZc2iKtgWueWm+DKByZVjuG/sz1hQNp8LHx3Li6PrSCc9HbsTRPycLSQlxuUKhswb0QvPCYmggVMO6Mo1p+9Ou/yEdpwtJLGddf+fNob/X7I2xsF1HCIKaLpOnGg8wdH9ruYHvX9FQaSDlDMHGyRoyStUTuSMlejs8MTod/hydg1R6W8gXhz0KcxVFGlLCAqXmBaGFdGqgoTLOUf04e5z9qZ1LJeYXMO4adkxidg2fWeNYV3TZywx43JYn0s5ttcFFEZbwQrtXRf0JtcZrdgmiJAjpf9u799w/iEnctWJO5HISYHOCLTAFdIAg1FwoDCR5meHd+KKUwaQK6Mne61TAllj+A+xSH2wNkoglykWzePgbj/n2O4/F1TLicpKSV2ZwjG73MRRPU+jbV4HTh7RmbvPHUpuIipaLXBbZL+GqFfPKQd24uIT+9M6V1EjVw0tgH57RNFyM7ydSMcYg6vVNGLiuCZKbk5rjuz3W07pdT45TlvC7wB2M/z5wDoyMgNePjmmrb58/56j+/ycRKKQqFyW/JxifjSiF3eftQsdCw0RG9NhxVVSHzlqbMxl3ZGwOQAAEABJREFUpejhv6kOQ1QyuPyo4WcKn9565l50LSgQnYR2vMTGYNohYbLGsIFptybQWcLlqJ2v5YReF5IfbY3dDJcpFLQJonJTIhze6zwO6nUGMRmdRUrPiss1hmP37MzFJw2kdX5aESCl0BBsaBArYL7taRS6BQfjOhTm+PzsiM7cdMYgEkZG9W0ds20ZCTiZZ/axXgkYuUzIZYq4CQ7qfhbH9fgleZH89cI3a1iraKWkoWt0/C7XcWzvX1IQK8Yao5Vfq3kzyPx4lDMP7MAtZ/UnLwe5Or5SM4BvKRprMrB5ThM/Obgzl3y/PwWh2+UGZK8NSyBrDN8iI2MMjlZvN3SZnIhcpvZymS7muG5nYoPwo1xCeVwKzTqvIPyVD+m61RfkqOBP2vkajul3HnmJIlzhC/GG+Fd1NsaQE0nQNreQMw7YiQfO3U1GAxFFuRztKk7gSNml2FZIV3VS2dVHO8dPg4kQCQJ+uF93bvrxULoVFRBxEmQ/qLFRl7NRUFmgFRIwPhEb4cidruPUvpdmXKbA6CywovUbz7DFBDHy3TxO2OkKuUZnynAstplrxLdcRw/pxB/PGkr7ojA8Gkaawtys1SP8qu2HPERcuUYeZ3+3C3edM4S4jG0twOzLBiWQNYYNimgNgJEhaJkmGonqS/U5HNvjXAojRWsA/qMU/j6Sa3N1Rvglh/Y8g4JoEVYGJYv4D8h1v+bGopw8vC2XntSHnBwroNAYlNHcIFTWjpIfC3/XqBOXnzSAuAzDcbSDhKDZtNESyBrDRosKjFZgJ3RZTJScRBsO73M+3+t5MXk2B19ujC/Ft0EceS74OOS6Rfxk9+s4fqfLKIy3wWT6JzBqYyOuhBOjTV4+vzx8Z/7+myG0L/QxLjhGLhFWeHy9+ESCJOcc2o3fn7QHnYsKiJiYYKIbQSEL0lwCWWNoLo0NlI0xGLMihX9VIm5yOaTPRVw8/EP2aXcS7eMdKIq1oYOzM/sWn8xFQ5/hgC4/J+rmEkiLjVnR1xizAUormk1oPErxSITjdmnFa78/iNP3zadvmxjdCiP0LI5z2IA2vHDNMK49ZRDF8dAIDEZ99FyBZLOfO17HrDFs5pw7GHQ6JRaBAa1247w9H+aG/T7i6uFvc+2Bb3H+Po+ye9vvEJdLFbpFgt5MSiu6mUQ+g3u14qELDmLknw7m39fvxce37MeLvx/O0QN6kNDBG3dLqaygtaM+nR114Fs6boMjc5AlGLkjUsSoPpy1SnSiS+FAWuX0xHXi6AFOFGMMhi27IoieiSgy5NK2II++ndvTuVURCYV8HdfFdR3cLaayZTxu672dbX0A/y3+TeiKSMmd1XkEowiOcYxyJeNgMmlNeUt4Dem4GYNwhN/FcZwVyahsVFYyxmwJiR2+r7PDSyArgKwEVkogawwrBZHNtjMJbMZwssawGULLdtk+JbBVjSH8B+5h+jbRhe3N07fB7shtq2S0I8tga499vcZgrY+nr0eel6a6oZEFy2qYsaSGOWU1LK+vJx14eEEKP4Tz01QK5qtZZcwvq1ZbmqZ0ms9nLOb5MQuZs7SSQPCBXfuraKBPU8lUE+9OXMJbX5XQmE7pg5WnZLf2uDcKf6iAgfWoaWpigcZdWVevcaSVQh4DgnDskkE6SEsWgfj2sYEvmVhSGkt5VQMlFTV44V+5kCw3imgzICt5BcJXsryWl0cv4JNpJdQ2pbCbiCuED2UfJk88h3PmC4cV/mbk1lu0mieb6aeS+gQqB/roZ5VWdbLCF6h+Fdyq+i3NreiFvIZyqE8mKVlWLV2rx/e81ahthrbVHHiUSt6Ll9XS5CXxNHergTaisF5jCETAlwK/O34BZ94zklPu+JxTbx/Fabd9yg9uH831z37B3LJl+OFfiAvqufedOZx+93jOvHcMdU21LKio59rnpnHmfeP52zvjZCA+oaI050kkKKtK8tO7xvKzu79k4rwlUjBB/G/YghgBTzK457WJ/PCu8VzxxETKahtI2TThBFQ3JHnyw+nc8OSnvDdlvup9GYK+KtgkX81dwrl/+Zwf3jmS8bNLsTKYDMJNeASinZaCPf3JFM669ysuf+JrpiyqaqaCG4/MSqmsDNf6TZJxg5hMZXjdKAyaDyuDCEgT6kSYwmUtTKv6W02mL/yebcT6+jK+qmELc5Em0E9Ki+YzH8/mtNs/45y7vtCiEH6FX4PcSvE/nrKIMx/8irP+Mk4Lx9LM3K2B2HBpvcbgYfDSDfzryyreGFvNVzMqmTi3hi/n+oycWMvtryzg3L/PZnFVI8Y6jJ68mPklNXw2rU6WK/ZTaaprIV0XUFqNsEUAq7TmdvBkJA6l9SmWNwVUNSaxZtUvpK2B+2+WLFFKFmvc0yv595QyFpbWErExCTrg85llXP3sXG59tZ4b/jmBkuV1+JKokeKMW9jI21+WMmZaE42KeBqFPjd1HOomebiU1EFjY0BtncGmJG/WluOG8VrNkccbU5dx3I3vc/Xz0ymv93BlIBvui4zHIQhc5i5axjn3f8LJd3xERW09xtdcrUSwtKaOa54ay49uGMm4RQtX1rZEZjBC4ypkXS1yo2bV8+pXNYyaMpvQANWUuVO+4e3P5/LJhFKmzq3AeIH6uZm2jX1o6tYDqlUpUFOtFNUqfj2kX4J/Xr4X9/+8O0N3ipH0c5g0eQmfzyrH9/I45+ie7D2oLb85qgMdChJ4+hhl8fAiMSKybGO0qQpPECjX1u8reTIiXxPr+j5O2krtRNBGEUhG2UKYIAj0brUiBUo+QciXViGrFdNXWwgT5oFw+DYgCJPqbZgEF2SS6oU0EE1fK4ifKYd1ATbEt/LdelZ0vQwdX/itYI2TYsBObbEmTVWVy8xlWlFNI56fZNyCGsoq0hplEyVlUS0Wy6VgPilZxLSFlTQ5Lh3zDIN6FolOQEg/EN4VfHqE+APxZ8WzFa3MWNSegROvofwd1RsZl2fieG5axhbFhmJSH1+8+2oPMjgsgfr6YT+1heVAuQ3r1J7SHLz62Uw+mOTz79HLWLy0Aqs5CQSzCrZ57msnC9us+lrRSBufGUvTvPhFFa+PqWeSXGJf6haIni+YeUtreX50Fa9NbuLdMcKtPkFIW7IVu6tvG9aFNNXPao6CTDmQzAMyc6F3q7SqgxF8IDpG33CG925F96I8PNPE06MqM3MV9kdjWyr3aMwCj0Cy79IxwW59W+mrjL8KzUbl6zUG15USawKszDLkrVe7XI4Z0pkzD+nLmYf1wPgRatIuTU0WP+oxqHtbTjuoHUft0xFHQo5qxjzXSDnSEjpI79Ezo0Szda5468u5PDlyOh9PK1F9ivC/bsJIEQU4fUklz3w6Q7vMYpLpJu0e6Yx78tyomXw8dWHGH0xL2OPnlPKicCyqrGPa4jKeHzWLZ0fPkSuxTAqZJIQJNBlJL81YuSpPfjKTRz+axvuTSphTXsWnMxcxdWE5abWXNTbw/uR5/OPDaTz10XRGTlmorbheLLsM69uecI2pb/J0Jqoj8FLUp5KMn1GBb11y44aq6jRfL6rDDxy1J5m8oBFrI+y/e3vi+kIcKu2Mpct5duQcnnhvqs4AM5m3vFoLieDkfjRonG99NZu3xs5mUWUNH06YzwujZ7KouiYjn0BGie/KLBw8jb0uVcubX83juc9msKy+UYaQpFSr87sT5/L4h1N4ZuRMLVRLqfe9jAynzq9m6fKUeLI0JBv5avZSPvx6MeW1teIhoMFX3dxSXvx8Rqb/P0dNZ8r8JSQ1Vpv2mFJaztfzK0iHCiyFGyt8H6n/kspqSqrq+Hx2ueQV4EkxZy9u4MNJi5i+uJKUF4j/NXdKvKeCRp2lqnnhi1k88sE0nvp0OpMXL8fTrpdW/wApz8ouoRHEtKtGtKj261zETr3ztMvFGDurmvnly/GlnIHkN3NpPbMX1UgOEY4f3pFWiRhGHyRXotmobL3GsKK3wahghbQ+iJISk/Mrm/hoUhVEUnRqHaNnu4gUxeGFzxdx6d9n8PsnpmC1K6ibFMlK+Cqpv6NVLJ32eWn8Qr7/54/52V+n8+u/zeaKx2fjOfnqE8HBktIZ5JH35nPhQ7P5zaNfU5fywKR5XYp+3qOzuOLpSSzVBDSo+tY35nPeo3O58OEvOe5P47jgwTlc9OBkfnjbWN6ZsFS25ZEMkvzl3emccts4fvPwRC7/2zR+es/XHHPjSH50xwQufGwKs5dWceXDk/nxvTO45NGZXKRx/PjuCfzk7q8oq6ylf/dCWuUFUsI0MzTRDUmXiiaXz2fUUlwAx+/dQUoTMG1uI9VNjVRJWaZKcYyFw4e3Bx2mXx+7lJ/cNY5zH5vNRfL9z3loAd+/6WM+CVdYKezMJVX88oGxXKDxnPXAZ/xU47j48blytcozbhmrLuEMZLzXvzSDs++fzq//8jUT5pcze3mD5DCBn943nUseEY2HZnLqbZ/xi7+OZOqiWs7/y2QpqIcXSQvW5apnSnTG+5q/vD6N5ak6bnhiLCf+aSq/fHAul/5tJr9S/5PvmcRzY+aRMj4/ueNL7nxxAemk9nkZ923PL+Yn907jofdLuPmpUfzxhVKW16XwIx4vj6rgtHsnc/HDo0nLvVnFepiHNj15Xg0/v2ey5msav314lsYwg5Nv+ZQnRi3C6Gzg2HWv6K0KYuy/SwHxiKuzZorRM6WHQur5hlGzKlhW5ZPIgVP360tEOmekUWzC5WwMrJHlvTm2lB6nPcke57/LC5/Np9gJ+PWxnRjap4gmrY6VjWmqJYySWghMmjWXZk9K7stkvppbzk//NJbp8qfrG6rIy02S8pJqaUTmrttq57Asq/Ooq6+lVAfUOh34DAEV8ptrq5OU1lpqtfqG/7qrWk5kbW01r32ZprzC06pVSU2Tz+zFdTq0z6Lag4XlTVz7+CQW66B+2NAOnPbdHqTStcxYYqhTtCcS8flsVimvja1kec0y8nMj5CYMlaIzfmYdM8obyYlE2HdIW8J/izBzSSNVssTpJeUslsu0V+9cTt6vA47raXdqJIw4zSmtoFy8FTge+w7oxOLKgD+9OpWv5lTRiir26ltE3NTx9UKfSx+bLP89iS+jL6uNUqqI3QcTLcvlniZIkR+3OKFVEcoR/CDgrx/N5b5nFlLR0MCBg9uyT6/2fDllOa9/Po/ltTUUttauHm9ieXXAG6OqSGnVTwb1kKrHTeXrgJukoUmvdQ34rkdNTUoHzlrKq8q18zQRjRsam2LMm1vFyx+XUKF2m7akkklxobl1axQtbKShsQo3M9cGr7EeE6Dk0qjduFHRxZTyiGmg+bVcC8N9b87hQ7nYqXQjewyK0LaNz8JFDpc+MolxOnf6RJp3WV12cLTTdqaooJGaeocvZ1Vp10trPuGD8YvwbYJjhhXQtiiqcUQwq3tuXGGDxmCFJ2SiMBGld6cedOtQQNRJUFgUsKgqpcOxhCCFcrzICkgZtePkkJYfKVkQulmulNfXyzrNYzgAABAASURBVCPvztFKnUO7wjh3/Xw3Zt5zAv933f7a2nJwJEgPF3flxAcmF2ObiJEHNp+kcDoIQm5URO6H1QnD13A9E2WXHj6vXTuYF6/eh4Hd4xnaS2qNFLqRWSVV1Du5dJGCnHdcP645fmeG7VyIa1Oce3J/3rh8b4k+D+tVgyngwmN68uxle/Dwrwdy45l9GNaztfgIOGHvbjiiPWdxBZWNPm9+tgzr+hywewf23bkr7YsTcguqFNrzePfr0LWB3fq1oVXUZVJJJRNn15Kn8u3nD+W2M3bn7EN7khONs2RZmnGzajQSq9EFwhnj+8Nz+dflg3jn+n35/j59NckuxviadJdXR8/mxn/MxImnOWFEe2768SDiOQ6V9Q1gE+TF87nzR3157nf78sAvduXpSwezR/eOvHj5ARxxQLHwJOnXOZfHLhjAO7ftzW+/tyfdWxfx+xP7cM8vBvPRH/flratGcNgeOQTGUlrjU5e0vPuH73Cz5iwv4WD8OH8+Z1c+veUAfvXdXbjt5/tyz7kD6CAZO5qbsw/twic378PTlxyAG0RpfpUrGvfWmAXCHeGK0wZy7+l7cfmJu1NYbKj3ooyctLQ5+DfKQ3oUM7xXrvoHjJGrNK+8nqklyxmrhSseT8pV70uOEyfqOjg6s30DwbdUOOtvsxkXJ7QuKzvbSwz89fxdefDcgVxxUjdKKj0efKOUl76oJCq/0tfWuTausGdYY7AmoFG+48zSVFhBj/Z5HNC/LQnZT0F+LkZ+n2Yy07bqYWVMq8rrzMN2pXBL3aVrASP6tGd434706CDj0UE9DPl6nqVfjwQdIkZGm+L2l2ZxzZNTGD+zVoqYZliPQpGN6LyTR9curXD1veTW5+Zy2SMz+WRyBQO7FRNxrARvOKJ/OxJiuKImzTQdFt+euIzC/Ci79WhFfiTggIEF1Cfh0znLGDWpXCxH2L1PPhHJZUZJvVbnOGknxq3/msMFD0/hX2PKSPr12LShNuWJj/COgVbqI4b25sBdO9OrXaEmVfLDYjQHZTVJnv5wuXbgGH27ICXqT9c2BXKjAgb1akOP9nFqm+BXf53M1U9MZUZJkl00Lkdj6FRUSHFuDN9EiGun69mhNQM7aUziTwsu/bq2ZlG5xx+fnsKv/jaeCXMb8KMOaG5ca2ifl0PXdkWaq4iMwdCjbTE7d2pDXiJBNBbP8BqRHJCLU1wUZ9eu7bXo5UohhUPSWHXPLWuksiEg1IkXP5zPLx/8igdem029vIDAiVOd9NG6uAp8rdxICnGN5ZRD+ollw9R5KeaW1vEPeSoNaZdBPeIM6Fa4Vp9NeVmb02Y9bbNyoFW4ILeAgb0LGNGvIxce3Z92RTGaxPhn06pplI5HJLBmXcR2+GYICxo6vqI9RruDcVJEZLHx8FePQYOyAvFVWnNb7JqXbylJ5zW5Uaz8Q5woEeMQDSdEGAmTgZ6FRVzz850xEtabo5bz6NsLqFaY8MLv9Wa/nfJodKLs0i2f536zOxcf04ZY3NP2W85D7y3i1NvGMKesVqgcKX4eg3rmZBT6offnUrrco1f7hJQgjqNAwXcGddTOYXUAXswXX9cTkQEO6lmIPC4ZgkM4pjh1FPg1kmYZ7RMpRvTI4/DBxezdp1jjcIno7GBx1W70TICJ4GlsRgoZzkEs2kQ8FuCaKpZU58ilqpQheHKmEgzr04YnLxvGLw7Moc63jFYY+M9vLuCUmz+hSatz+D8VGa30gfZa1wq1VM4Sx9UMLFpWx3kPjOPGl77m31Mq6N4uwqBeMSLJQFAGbew4xsOYNGgkehD+uRzfcTL1EZPK8OlIrkaBFUcAmTkxaneM3tbcVnqQwaF6J2KJqW9B3GdQP8sRO1dz1OCO4ilY06FZKVQxa6IcNag3Xdp7NKRSvDKulGffX5qR/SFDutI6L9Ksx6YVQ77X08NgbANJbc8RHWqrvSYqKhsUS6/nramVKqclqIgiKb7gIqSl5DbUTqNptwYjiUeF3Wj1jujwXJgTpUtxPDPps5c38tHXC3QQrmeRQmKOk5agISJa1hgSLnr3STbl8Pm0xczTx71Zi5Zi5QYInXCIJo4OtAFGPrQrZVE3dXIgiCkZbBAKRbkOdM99MAePNBee0J0HLxrMh9ftze+O3Y2i3FxyhGeZzjpfzqnkhwfvxv/dMIJfHd+DqMazuB4mzKvEWoPcaEbs2kn0HEaOD12SgH6dEgoiFIifOAO6FtGhjeGzSdWKNKXp1DZOPxmLG4U+nWMyCg/rG3575v48fsmhPHrpftzyi7057/t9tLDkYh1fSePR+SvQ6iePDEd0Q9v2pTjYOJ0KcjjvqC60bxOnptJwy4tzGDuvTNGwFIv01XXO0kbOPWYgo/+0P2ce3pOIduyxJR4zl2inMoEMNMC1TSxXJKxk+TIWLiunrK6GUTOXKBLWQIw8zjm6K7eftQdDuyfwnZzMPIRG5Po5hFKXdLEy/pny7UvLKimrqFZ9nDwHcqOGqIsMtZLSZWUsqawgmfJpfvWQV5CfiIk3y6kH9eDxi4fLlRvOvWcfwO9O3Z9duxRQUdfEPW+N5zdPfK5z1hLFH+pJWgvWk85Zcp1avjeiF57k8/j7FVTVerRvFWfffq3FW1RRyqlc9sQYPp4xvznpDZY1hHXDGKmPNTG5ABCuDONn1XG2IhenPzie8+8dg+8X0KYozZF7dJCf6kpJoqAZNGJwxeJhccJYcoZ9h3Bif3BQFxKxNEuXJbnu2Xmc9/BULnlsEtZK6Bor6p+QBfXoECdXK+ByHWIvVrTnxNsn8OIny4C0VDfAlQGIGK5VFRHlgQpGVcpNEqN6I1hEP2ldFpTX6RwR4SO5Pm+MLef+N+Zw04tf8/HkMtKKNr0/dhm/VBTm2Os+5rJ/zGCMjN14rpTDoU1BAqOfQJMRBgtiwm/xiMg6hvTMoyDmENGq2akwhwEZtyuusULP1gk6t2sl3nyGKj4+qGcudV4+Z93+KRc9MoNzHpzIsdeN4hd3fcHiiiZivk9gEoRjhEBjMGCUS5gRjTeaDvDdBPvs3JmrTulPIi/NF/KTr35mHvX15Tz3RRk/ve0rTvrTGK59agYT59SLywTFsUZa58W12zgM7t4e43iU6NvIdc/P49R7JnLvK3OIxqO4jovnNSp6VcaFj33NY59W4gRGycXYGEEkKVlAWy1oEOHuF6dy+n1TtaN8IWNQfUFUC0ChWK/nX5/V8GNFus57aAKB5oBmV/fiPI4Z3hmiAVc/Pp2zHwrTFI6/8WNOuP5TvlS4esKsUq57Yjr3vlrKI/+eR63OLJKGsFjtGkgHcjl+r04U5VtMqgY/EmXnzvn071ZITaPHRQ9M4u5XF3H3K9OlW1b9Nu521gcm0eM4Dnv2yCc/YamoSvLOV1V8MXF5JrqwWy/LzacP4OgBHUhp5WqTk5TKpMjPNWIgmVkhElpBrESVmx/D0ep92KDO3HHGznTIdVhYFvD6FwvFfB3tC9PgpmhVVIyjCThRwhq+ayFG8ehFMpzS5cs4Sd8wjJQuJxYhJnpI4/PzDEY+dnF+ZOUwLAWFUfEBsZglHnGorW+iuChPk+Qrtl7NayPn888PF3DnS3O44IEJjC2pYFDvIobvWkBZdRNvfFmm3ageR0vcOYd1Yliv1iLlaRWy9GuXoyBCoSbDo61QHrx7F4wTwTcu7YtyGb5TK2Ias+ukGNAjly6FESlkjM6tcrjylF0Z0ifK4poUr41ZyAcTyrTNp9l3YHuKJZ9Ebh4RU0tMwYiQbxOOSGOUNCnOzSHQ7hmLNSnSFeGUfXpxyTHdcIzDp+MX8/bEKp2Z8tlDka2SshQvj1rCl4r7tylo4qbTB9KxMEEolOPkRhy7V74WWE87XgMTplezpKqCvXXWOnRoK3wZ3pQ5Nbw5ejGdtbPFg3riUYeoYyW/GLu2LeakER0JF6oFFQGfTyllvvTC9evoqJX55H1bE9dc1NamGKlo0fT5ywldKZpdhYkYlxzbl8MGtyEpN/v9sUt45/MlaPNnmOagu858+XlRiOYS9ZPk5MTRVMgIxINxccRlKhpl147F7N+/DZoA4k4TRwwtpE1+lIJIjHzpV6g74ULGJlzO+mBjWqXi0QQXHzuICfcczBvXDOL53+3Bq9fuybT7D2P07Ufz44MG0KZVKzHg8ssjBvLhH/bmuUv3xZWv26t9AQ9dOJS3r92DP/xwGKHSFCTy+MUhOzHmviN59fqhvHXLPoy57VjevH5/RioysXO3DkTcgJ06tuaVqw7hg1v249Wr92TiHUfy17P35v2bRvDMJUPp1baQRDzCHT8dzNvXD+OW0weLpoNLhDtPGcqr1w3hyYsG06lNIT+75zMmzEqzj4zr/RuHMfrew7n+jF7kSmCzKn3Gjq9goFb08B/bj73/UF68YggvXzuMqQ8eznWnDKKtzhyxSA5xN87Anu14+aq9efOqobx/y3fYvUenjPFGNUW5sRhXHjeQ924cwjvX78mNp+1NTjyP8E9I5io/Zo8efHzTYXwgF+Zvlw3luSuHMO2hI7n3zD1pl5egV8f2jLn1EP593V4cO6Q9jmbGceI4WrEvO2YAr9+wO/+8aBiDe7fXoTXOb04azEe3D+eNG/bihOF9OWBgV94R/o9u3ZenfjeU167Zl3F3H8c5hw0gHk/gmiidilrxr0sP59M/f4fnxcMY9X/kwkPo2aaYx87bn6/vPpA3NfZxdx3GO1ccyEt/GsED5w1WBDEf143QqriQ604dwLg7RmTk9LZcyvf+8F0ZcC6JWA4/OaQ/4+45Qm2789a1I/jkz8dRuGL7Xq1mkWicPXp25NXfHcyX9+7DPxQ1e/zyPZjwwP68fOVh9NWhfq8+HTXXw/nXdcO46qQBFOSKvnFwjIuRTOLK22on/uu5w3jnD3vy4S0j+N3xQyXvfLm+Ccn5QOnpPvzhNOmdMatpb6ggka8fxBiDMYYuhfkcuGt3jhnamUN360xPKaPOh2JO1rqye27Mlc/WSYqaoy3Zw2iV6d2+iIP7d1cUJoExZiVkgg55Lofv2ooDe7clV6t3/07FDNEX7IggAim0ld+v8DrD9Q3j8IFtpZC52m1gn94d6NexFY64DrF1bZXgoJ06kB8Pe5KhkZOTw+H929CjXR41qTQLy6K42m0iWlnr6sFNehQ7RVLumOAt+VrREc0IsHP7fI7aoz1HiGbn3CiuH1XtmtvIVerVLpeDd2tH9+LiTP+MP78SJBqNaoXuxH67diMvdPbl7qxsIjAOUclgRI9ifqRvFsfv3pEOBXF8HeB9A64T0F8RnSG9O5ITQ5evtOIO8R7cvyc7d2qNQyDJ+uQIfnCX1grrdhctwYm3XAN7dG3F94d05pD+7WmrbyZiUo1rbkc8DOlSxHeHtGOQokFrWqBPu9YcOLATfdvkkaN5ObBfe/p1KJAhrYEyQZTebVrx3T068Z1dWtNKodYVWiAXRj5918IYRw7uyQEDimjYVspwAAAEmElEQVST6xL+oeY1vdeUHE3iTsWt+d7g7uK3q+arDS4agEACte3eMV/z2InCuKuab94hZDuN74CdurJn9zZrAXRpXcCh/Tto/OvuuxZwsxenWXm9RavVyWplQdECVwwbMSvZ49g1E4bqrSvlcYXSSRCYiGpcHCmB6ypXH3RJL7FSAOto6zfxTDt6D2GM4LQfg6MN2zEYwYQJY3DDFUark+O6WOHWE5SHfnTYji7HcQTn4rs5whunWEZyzmHtcHMso6fXcJHOPD+6fwLXPzuDZdrKD+6fw+FSbCv8FtHTGF3hdMQXwoWiHUK7+rZOWIzimlzCcwLG4oQDUrUxJkPbEMnwF4jXDA5WXOEhFMH4bi5BJA/rrhh7xIiyFYxxM8biij6oLVCd7lVjcpBshTswjmQbGkREY3SVwDoRAhwQDqN241hwjN4d8eKiJ80v4zpERMdGBMOay8iPdxRSIOyr5LsJ9Y+sAVBJKoAGLRAXI3lZHNF2wxaCkD4RwrlyyYWQRjhvrOeKxXEd8Se4mHHV0wEDGIPvxKRuMZVVx7ouAYq+o36B9G0tCOEMMryHfK3V8q0v66O0VidXAo5KCd2Ii3E0WAkg7GhwWXMZvTlqUbsxGpjBUT8jZml2uY4RnNolgIja3UzuEtY6ejroR30cY3DCXNDhxEU0cJcVbUb9UNlVeySTrz1hUVEP+8ZknGcf3lcfsIZxysHt6NTBI8/1GLJTjiImu/CXC0bQWatgRMJzV9IzJoYRLSPcJkOH1VdEdY7qjHIE54o3vWL0sxooxCOeQr7M6koEYVSLVNroYB5yGFWdk0mO8LkqIVkYx8EJkUrONLsyVcIdwdHooqKsviG8UoYv1RvhMVpYjIzZFZUQjyH8cWl+OeLdSNnCvHm9CbkLcWj8bohXOF29IxysvFyVHbWjZJRcMSZOMOIq5M0RvBEeR/0dY3CVWM/lCtaV7EP5GyM+DejG1U9UtMPkZGpY5+WINo7BVV+aXa7whryEebPqDRadDUIIwBiDMd9MqlTrilvNev0mjDFmBcDKp0E/qjNmHblgjGlWvxasgzFqY2UKy5kExhiaX8aYTJ0xhnhcW+YuHfjrWXvy/nWHMfLmI3jtygM497C+dNehz6hjJgnWGKN+jlKYr0hqXn0bs6LOmLVzzGoQjDFrEmZ1g1F5dWoO8y3l1Z1VMEa9V6e1eVQLxui5zqTOmPCRScYYjFmTMpUrH0bKZcyaNhUxZsX7SpDV76Y5rBqNWQFnzDdzNa/zNuabsMZ8s25dnY1pBodZC8QYg24ls1b9hl6cDQFs6+2usUS0qxm5J8bEkYS09cdwtPIarUoBukKfT1n23nYl0BKcb/fGYIyDUYqsTkbbqoOjrdRoa8+kcBkhe+3oEnC2dwEYYzCmeXJWvzuqD5MqtncxZMe3ERJwNgImC5KVwA4hgawx7BDTnB3kxkggawwbI6UszA4hgf+iMewQ8s0OchuSQNYYtqHJyrK6dSWQNYatK98s9m1IAllj2IYmK8vq1pVA1hi2rnyz2LchCWSNYXMnK9tvu5NA1hi2uynNDmhzJfD/AAAA//8uCKzyAAAABklEQVQDACoYrx0hQRoDAAAAAElFTkSuQmCC" alt="BildungsWerkstatt e.V.">
+  <div>
+    <div class="titel">SEPA-Lastschriften</div>
+    <div class="unterzeile">Mandate aus Paperless holen &middot; Importdatei für windata erzeugen</div>
+  </div>
+  <div class="abstand hilfe">
+    Alle Daten bleiben in diesem Browser. &nbsp;·&nbsp;
+    <a href="suche.html">Dokumente durchsuchen</a> &nbsp;·&nbsp; <a href="api-pruefen-einzeldatei.html">Zugang prüfen</a>
+  </div>
+</header>
+
+<main>
+
+  <!-- 1 ------------------------------------------------------------------ -->
+  <section class="karte">
+    <h2><span class="schritt">1</span> Mandate holen</h2>
+
+    <div class="raster" style="margin-bottom:14px">
+      <div>
+        <label for="quelle">Woher kommen die Mandate?</label>
+        <select id="quelle">
+          <option value="helfer" selected>paperless.io über den Helfer — empfohlen</option>
+          <option value="io">paperless.io unmittelbar — nur mit CORS-Freigabe</option>
+          <option value="datei">Datei — Scan oder Export</option>
+          <option value="ngx">paperless-ngx — eigenes Dokumentenarchiv</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- paperless.io über den Helfer -->
+    <div id="quelleHelfer">
+      <p class="hilfe">
+        Der Helfer läuft auf diesem Rechner, holt die Mandate aus paperless.io und liest
+        die ausgefüllten Werte aus den Dokumenten. Er wird im Terminal gestartet mit
+        <code>node helfer/paperless-helfer.mjs</code> und fragt dort den Token ab.
+      </p>
+      <div class="raster">
+        <div>
+          <label for="helferUmfang">Welche Dokumente?</label>
+          <select id="helferUmfang">
+            <option value="fertig" selected>nur abgeschlossene Mandate</option>
+            <option value="alle">alle Dokumente (auch Entwürfe)</option>
+          </select>
+        </div>
+      </div>
+      <div class="knopfreihe">
+        <button class="knopf gruen" id="helferKnopf">Mandate holen</button>
+      </div>
+    </div>
+
+    <!-- paperless.io unmittelbar -->
+    <div id="quelleIo" class="versteckt">
+      <p class="hilfe">
+        Der Regelfall: Eltern füllen das Mandat in paperless.io aus, die Felder kommen
+        strukturiert an. Der Token wird nur im Arbeitsspeicher gehalten und beim Schließen
+        des Fensters vergessen.
+      </p>
+      <div class="raster">
+        <div>
+          <label for="ioUrl">Basisadresse der API</label>
+          <input type="text" id="ioUrl" value="https://app.paperless.io/api" autocomplete="off">
+        </div>
+        <div>
+          <label for="ioToken">API-Token</label>
+          <input type="password" id="ioToken" placeholder="aus den Kontoeinstellungen" autocomplete="off">
+        </div>
+      </div>
+      <div class="knopfreihe">
+        <button class="knopf" id="ioVerbindenKnopf">Verbinden und Felder ansehen</button>
+        <button class="knopf gruen" id="ioLadenKnopf" disabled>Alle Mandate laden</button>
+      </div>
+    </div>
+
+    <!-- Datei -->
+    <div id="quelleDatei" class="versteckt">
+      <p class="hilfe">
+        Für eingescannte Mandate auf Papier und für Exportdateien. Erwartet wird JSON in der
+        Form <code>{"results":[{"id":1,"title":"…","content":"…"}]}</code>. Sammelscans mit
+        mehreren Mandaten werden dabei zerlegt.
+      </p>
+      <div class="knopfreihe">
+        <label class="knopf gruen" for="jsonDatei" style="margin:0">Datei öffnen</label>
+        <input type="file" id="jsonDatei" accept=".json,application/json" class="versteckt">
+      </div>
+    </div>
+
+    <!-- paperless-ngx -->
+    <div id="quelleNgx" class="versteckt">
+      <p class="hilfe">
+        Nur nötig, wenn die BildungsWerkstatt ein eigenes Dokumentenarchiv betreibt.
+      </p>
+      <div class="raster">
+        <div>
+          <label for="paperlessUrl">Adresse der Instanz</label>
+          <input type="text" id="paperlessUrl" placeholder="https://paperless.bws-ev.de" autocomplete="off">
+        </div>
+        <div>
+          <label for="paperlessToken">API-Token</label>
+          <input type="password" id="paperlessToken" placeholder="aus dem Benutzerprofil" autocomplete="off">
+        </div>
+        <div>
+          <label for="tagAuswahl">Tag der Mandate</label>
+          <select id="tagAuswahl"><option value="">— erst verbinden —</option></select>
+        </div>
+      </div>
+      <div class="knopfreihe">
+        <button class="knopf" id="verbindenKnopf">Verbinden</button>
+        <button class="knopf gruen" id="ladenKnopf" disabled>Mandate laden</button>
+      </div>
+    </div>
+
+    <div id="ladeMeldung"></div>
+  </section>
+
+  <!-- 1b ----------------------------------------------------------------- -->
+  <section class="karte versteckt" id="zuordnungKarte">
+    <h2><span class="schritt">1b</span> Felder zuordnen</h2>
+    <p class="hilfe">
+      So heißen die Felder in eurem Mandat bei paperless.io. Zu jedem Feld steht der Wert
+      aus dem ersten Dokument, damit die Zuordnung nachprüfbar ist. Sie wird gespeichert
+      und muss nur einmal gemacht werden.
+    </p>
+    <div class="raster" id="zuordnungFelder"></div>
+    <div class="knopfreihe">
+      <button class="knopf leer" id="zuordnungZuruecksetzen">Zuordnung zurücksetzen</button>
+    </div>
+  </section>
+
+  <!-- 2 ------------------------------------------------------------------ -->
+  <section class="karte versteckt" id="laufKarte">
+    <h2><span class="schritt">2</span> Lastschriftlauf festlegen</h2>
+
+    <h3>Gläubiger — die BildungsWerkstatt</h3>
+    <div class="raster">
+      <div>
+        <label for="agName">Name des Vereins</label>
+        <input type="text" id="agName" value="BildungsWerkstatt e.V.">
+      </div>
+      <div>
+        <label for="agIban">IBAN des Vereinskontos</label>
+        <input type="text" id="agIban" value="DE54 3702 0500 0001 6986 00">
+      </div>
+      <div>
+        <label for="agBic">BIC</label>
+        <input type="text" id="agBic" value="BFSWDE33MUE">
+      </div>
+      <div>
+        <label for="agGlaeubigerId">Gläubiger-Identifikationsnummer</label>
+        <input type="text" id="agGlaeubigerId" placeholder="DE00ZZZ00000000000">
+      </div>
+    </div>
+    <p class="hilfe" style="margin-top:8px">
+      Diese vier Angaben bleiben in diesem Browser gespeichert, damit sie nicht jedes Mal neu
+      eingetippt werden müssen. <button type="button" class="knopf leer" id="stammdatenLoeschen"
+      style="padding:3px 12px; font-size:.8rem">Gespeicherte Angaben löschen</button>
+    </p>
+
+    <h3 style="margin-top:20px">Einzug</h3>
+    <div class="raster">
+      <div>
+        <label for="termin">Fälligkeitstermin</label>
+        <input type="date" id="termin">
+      </div>
+      <div>
+        <label for="standardBetrag">Betrag je Mandat (€)</label>
+        <input type="number" id="standardBetrag" step="0.01" min="0" placeholder="z. B. 87,50">
+      </div>
+      <div>
+        <label for="standardSequenz">Sequenz</label>
+        <select id="standardSequenz">
+          <option value="RCUR" selected>RCUR — Folgelastschrift</option>
+          <option value="FRST">FRST — Erstlastschrift</option>
+          <option value="OOFF">OOFF — einmalig</option>
+          <option value="FNAL">FNAL — letzte Lastschrift</option>
+        </select>
+      </div>
+      <div>
+        <label for="zahlart">Lastschriftart</label>
+        <select id="zahlart">
+          <option value="BASIS" selected>BASIS — Basislastschrift</option>
+          <option value="COR1">COR1 — Eillastschrift</option>
+          <option value="FIRMEN">FIRMEN — Firmenlastschrift</option>
+        </select>
+      </div>
+    </div>
+
+    <div style="margin-top:14px">
+      <label for="vwzVorlage">Verwendungszweck (Vorlage)</label>
+      <input type="text" id="vwzVorlage" value="Elternbeitrag {monat} {jahr} {kind}">
+      <p class="hilfe" style="margin-top:5px">
+        Platzhalter: <code>{kind}</code> <code>{name}</code> <code>{monat}</code>
+        <code>{jahr}</code> <code>{mandat}</code>
+      </p>
+    </div>
+
+    <div class="knopfreihe">
+      <button class="knopf" id="uebernehmenKnopf">Auf alle ausgewählten Zeilen anwenden</button>
+    </div>
+  </section>
+
+  <!-- 3 ------------------------------------------------------------------ -->
+  <section class="karte versteckt" id="tabellenKarte">
+    <h2><span class="schritt">3</span> Mandate prüfen</h2>
+    <p class="hilfe">
+      <span class="marke fehler">rot</span> hält die Zeile aus dem Lauf heraus &mdash;
+      <span class="marke pruefen">gelb</span> heißt: aus der Texterkennung gelesen, vor dem Einzug am Beleg gegenlesen.
+      Gepflegte Felder in Paperless ersparen diese Prüfung.
+    </p>
+    <div class="zahlenreihe">
+      <div><div class="zahl" id="zahlGesamt">0</div><div class="zahl-etikett">Mandate</div></div>
+      <div><div class="zahl gruen" id="zahlAusgewaehlt">0</div><div class="zahl-etikett">ausgewählt</div></div>
+      <div><div class="zahl" id="zahlSumme">0,00 €</div><div class="zahl-etikett">Summe</div></div>
+      <div><div class="zahl" id="zahlPruefen" style="color:var(--sun-500)">0</div><div class="zahl-etikett">zu prüfen</div></div>
+      <div><div class="zahl" id="zahlProblem" style="color:var(--danger)">0</div><div class="zahl-etikett">nicht einziehbar</div></div>
+    </div>
+    <div class="knopfreihe" style="margin-bottom:12px">
+      <button class="knopf leer" id="alleWaehlen">Alle auswählen</button>
+      <button class="knopf leer" id="keineWaehlen">Auswahl aufheben</button>
+      <button class="knopf leer" id="nurEinziehbare">Nur die einziehbaren auswählen</button>
+      <button class="knopf leer" id="nurGepruefte">Nur die ohne Prüfhinweis</button>
+    </div>
+    <div class="tabellenrahmen">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:34px"></th>
+            <th style="width:210px">Befund</th>
+            <th>Kontoinhaber*in</th>
+            <th>Kind</th>
+            <th>IBAN</th>
+            <th>BIC</th>
+            <th>Mandatsreferenz</th>
+            <th>Mandatsdatum</th>
+            <th style="width:96px">Betrag</th>
+            <th style="width:88px">Sequenz</th>
+            <th>Verwendungszweck</th>
+          </tr>
+        </thead>
+        <tbody id="tabellenkoerper"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 4 ------------------------------------------------------------------ -->
+  <section class="karte versteckt" id="ausgabeKarte">
+    <h2><span class="schritt">4</span> Datei erzeugen</h2>
+    <p class="hilfe">
+      Die CSV ist das windata-Importformat. Die pain.008-Datei ist der Rückfallweg,
+      falls die Feldzuordnung beim CSV-Import einmal klemmt — windata liest beides.
+    </p>
+    <div class="raster">
+      <div>
+        <label for="csvVersion">Format der CSV</label>
+        <select id="csvVersion">
+          <option value="1.2" selected>windata CSV 1.2</option>
+          <option value="1.1">windata CSV 1.1</option>
+        </select>
+      </div>
+    </div>
+    <div class="knopfreihe">
+      <button class="knopf gruen" id="csvKnopf">windata-CSV herunterladen</button>
+      <button class="knopf leer" id="xmlKnopf">SEPA-XML (pain.008) herunterladen</button>
+      <button class="knopf leer" id="vorschauKnopf">Vorschau anzeigen</button>
+      <button class="knopf leer versteckt" id="kopierKnopf">Inhalt in die Zwischenablage</button>
+    </div>
+    <div id="ausgabeMeldung"></div>
+    <pre id="vorschau" class="mono versteckt" style="background:var(--ink-50); padding:14px; border-radius:10px; overflow:auto; max-height:340px; font-size:.78rem"></pre>
+  </section>
+
+</main>
+
+<footer class="fusszeile">
+  <strong>BildungsWerkstatt e.V.</strong> · Paul-Wassermann-Str. 15 · 81829 München · office@bws-ev.de &nbsp;|&nbsp;
+  Dieses Werkzeug verarbeitet alle Daten ausschließlich im Browser. Es findet keine Übertragung an Dritte statt.
+</footer>
+
+<script type="module">
+// ---- src/iban.js -----------------------------------------------------
+/**
+ * IBAN- und BIC-Prüfung nach ISO 13616 / ISO 9362.
+ * Läuft ohne Abhängigkeiten in Browser und Node.
+ */
+
+/** Sollängen der IBAN je Länderkennung (SEPA-Raum, Stand 2026). */
+const IBAN_LAENGEN = {
+  AD: 24, AT: 20, BE: 16, BG: 22, CH: 21, CY: 28, CZ: 24, DE: 22, DK: 18,
+  EE: 20, ES: 24, FI: 18, FR: 27, GB: 22, GI: 23, GR: 27, HR: 21, HU: 28,
+  IE: 22, IS: 26, IT: 27, LI: 21, LT: 20, LU: 20, LV: 21, MC: 27, MT: 31,
+  NL: 18, NO: 15, PL: 28, PT: 25, RO: 24, SE: 24, SI: 19, SK: 24, SM: 27,
+  VA: 22
+};
+
+/** Entfernt Leerzeichen und Bindestriche, macht Großbuchstaben. */
+function normalisiereIban(wert) {
+  return String(wert ?? '').replace(/[\s -]/g, '').toUpperCase();
+}
+
+/** Formatiert eine IBAN in Vierergruppen (nur für die Anzeige). */
+function formatiereIban(wert) {
+  return normalisiereIban(wert).replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
+ * Mod-97-10-Prüfung nach ISO 7064, stückweise gerechnet,
+ * damit auch 34-stellige IBANs ohne BigInt sicher bleiben.
+ */
+function mod97(ziffernfolge) {
+  let rest = 0;
+  for (const zeichen of ziffernfolge) {
+    rest = (rest * 10 + Number(zeichen)) % 97;
+  }
+  return rest;
+}
+
+/**
+ * Prüft eine IBAN vollständig.
+ * @returns {{gueltig: boolean, iban: string, land: string|null, fehler: string|null}}
+ */
+function pruefeIban(wert) {
+  const iban = normalisiereIban(wert);
+  const ergebnis = { gueltig: false, iban, land: null, fehler: null };
+
+  if (!iban) {
+    ergebnis.fehler = 'IBAN fehlt';
+    return ergebnis;
+  }
+  if (!/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/.test(iban)) {
+    ergebnis.fehler = 'IBAN enthält unerlaubte Zeichen oder ist falsch aufgebaut';
+    return ergebnis;
+  }
+
+  const land = iban.slice(0, 2);
+  ergebnis.land = land;
+
+  const sollLaenge = IBAN_LAENGEN[land];
+  if (sollLaenge === undefined) {
+    ergebnis.fehler = `Länderkennung ${land} gehört nicht zum SEPA-Raum`;
+    return ergebnis;
+  }
+  if (iban.length !== sollLaenge) {
+    ergebnis.fehler = `IBAN für ${land} muss ${sollLaenge} Zeichen haben, hat aber ${iban.length}`;
+    return ergebnis;
+  }
+
+  const umgestellt = iban.slice(4) + iban.slice(0, 4);
+  const ziffern = umgestellt.replace(/[A-Z]/g, (b) => String(b.charCodeAt(0) - 55));
+  if (mod97(ziffern) !== 1) {
+    ergebnis.fehler = 'Prüfziffer der IBAN stimmt nicht — vermutlich Tippfehler oder OCR-Fehler';
+    return ergebnis;
+  }
+
+  ergebnis.gueltig = true;
+  return ergebnis;
+}
+
+/** Prüft einen BIC (8 oder 11 Stellen). Leerer BIC gilt als zulässig (IBAN-only). */
+function pruefeBic(wert) {
+  const bic = String(wert ?? '').replace(/\s/g, '').toUpperCase();
+  if (!bic) return { gueltig: true, bic: '', fehler: null };
+  if (!/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(bic)) {
+    return { gueltig: false, bic, fehler: 'BIC muss 8 oder 11 Stellen haben (z. B. BFSWDE33MUE)' };
+  }
+  return { gueltig: true, bic, fehler: null };
+}
+
+/** Grobe Plausibilitätsprüfung: passt die Länderkennung des BIC zur IBAN? */
+function bicPasstZuIban(bic, iban) {
+  const b = String(bic ?? '').toUpperCase();
+  const i = normalisiereIban(iban);
+  if (b.length < 6 || i.length < 2) return true;
+  return b.slice(4, 6) === i.slice(0, 2);
+}
+
+
+// ---- src/sepa-text.js ------------------------------------------------
+/**
+ * Zeichensatz für SEPA-Zahlungsverkehr.
+ *
+ * Der SEPA-Basiszeichensatz (EPC217-08) erlaubt nur:
+ *   a-z A-Z 0-9 / - ? : ( ) . , ' + und das Leerzeichen.
+ * Umlaute und ß werden umgeschrieben, alles andere wird zu einem Leerzeichen.
+ * Damit ist die Ausgabedatei reines ASCII — Encoding-Probleme beim Import
+ * in windata können gar nicht erst entstehen.
+ */
+
+const ERSETZUNGEN = {
+  'ä': 'ae', 'ö': 'oe', 'ü': 'ue', 'Ä': 'Ae', 'Ö': 'Oe', 'Ü': 'Ue', 'ß': 'ss',
+  'à': 'a', 'á': 'a', 'â': 'a', 'ã': 'a', 'å': 'a', 'æ': 'ae',
+  'è': 'e', 'é': 'e', 'ê': 'e', 'ë': 'e',
+  'ì': 'i', 'í': 'i', 'î': 'i', 'ï': 'i',
+  'ò': 'o', 'ó': 'o', 'ô': 'o', 'õ': 'o', 'ø': 'o',
+  'ù': 'u', 'ú': 'u', 'û': 'u',
+  'ç': 'c', 'ñ': 'n', 'ý': 'y', 'ÿ': 'y',
+  'À': 'A', 'Á': 'A', 'Â': 'A', 'Ã': 'A', 'Å': 'A', 'Æ': 'Ae',
+  'È': 'E', 'É': 'E', 'Ê': 'E', 'Ë': 'E',
+  'Ì': 'I', 'Í': 'I', 'Î': 'I', 'Ï': 'I',
+  'Ò': 'O', 'Ó': 'O', 'Ô': 'O', 'Õ': 'O', 'Ø': 'O',
+  'Ù': 'U', 'Ú': 'U', 'Û': 'U',
+  'Ç': 'C', 'Ñ': 'N', 'Ý': 'Y',
+  '„': '', '“': '', '”': '', '‚': "'", '‘': "'", '’': "'",
+  '–': '-', '—': '-', '…': '...', '€': 'EUR', '&': 'und', '"': ''
+};
+
+const ERLAUBT = /[^A-Za-z0-9/?:().,'+\- ]/g;
+
+/** Schreibt einen Text in den SEPA-Basiszeichensatz um. */
+function sepaText(wert) {
+  let text = String(wert ?? '');
+  text = text.replace(/[^\x00-\x7F]|["&]/g, (z) => (z in ERSETZUNGEN ? ERSETZUNGEN[z] : z));
+  text = text.replace(ERLAUBT, ' ');
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+/** Kürzt auf die zulässige Feldlänge (ohne Wort mittendrin zu zerreißen, wenn möglich). */
+function kuerze(wert, laenge) {
+  const text = String(wert ?? '');
+  if (text.length <= laenge) return text;
+  const hart = text.slice(0, laenge);
+  const letzteLuecke = hart.lastIndexOf(' ');
+  return letzteLuecke > laenge * 0.6 ? hart.slice(0, letzteLuecke) : hart;
+}
+
+/** SEPA-konform umschreiben und auf Feldlänge kürzen. */
+function feld(wert, laenge) {
+  return kuerze(sepaText(wert), laenge);
+}
+
+/** Zerlegt einen Verwendungszweck in n Zeilen à 27 Zeichen (windata-Format). */
+function verwendungszweckZeilen(text, maxZeilen = 14, zeilenLaenge = 27) {
+  const sauber = sepaText(text);
+  if (!sauber) return [];
+  const woerter = sauber.split(' ');
+  const zeilen = [];
+  let aktuell = '';
+
+  for (const wort of woerter) {
+    const kandidat = aktuell ? `${aktuell} ${wort}` : wort;
+    if (kandidat.length <= zeilenLaenge) {
+      aktuell = kandidat;
+      continue;
+    }
+    if (aktuell) zeilen.push(aktuell);
+    // Einzelwort länger als eine Zeile: hart umbrechen.
+    let rest = wort;
+    while (rest.length > zeilenLaenge) {
+      zeilen.push(rest.slice(0, zeilenLaenge));
+      rest = rest.slice(zeilenLaenge);
+    }
+    aktuell = rest;
+  }
+  if (aktuell) zeilen.push(aktuell);
+  return zeilen.slice(0, maxZeilen);
+}
+
+/**
+ * Prüft, ob eine Mandatsreferenz unverändert durch den SEPA-Zeichensatz geht.
+ *
+ * Das ist keine Förmlichkeit: Die Referenz muss der auf dem unterschriebenen
+ * Mandat entsprechen. Der Unterstrich im Schema der BildungsWerkstatt
+ * (BWS_Nachname-Vorname) gehört nicht zum erlaubten Zeichenvorrat und würde
+ * in der Datei zu einem Leerzeichen — die Abweichung soll sichtbar sein,
+ * statt stillschweigend zu passieren.
+ *
+ * @returns {{unveraendert: boolean, sepaForm: string, ersetzt: string[]}}
+ */
+function pruefeMandatsreferenz(referenz) {
+  const original = String(referenz ?? '');
+  const sepaForm = sepaText(original);
+  const ersetzt = [...new Set([...original].filter((z) => /[^A-Za-z0-9/?:().,'+\- ]/.test(z)))];
+  return { unveraendert: original === sepaForm, sepaForm, ersetzt };
+}
+
+
+// ---- src/mandate.js --------------------------------------------------
+/**
+ * Aus einem Paperless-Dokument ein SEPA-Mandat gewinnen.
+ *
+ * Zwei Wege, in dieser Reihenfolge:
+ *   1. Custom Fields aus Paperless (gepflegt, verlässlich)
+ *   2. Regeln auf dem OCR-Text (Rückfall, immer als "zu prüfen" markiert)
+ *
+ * Jedes Feld trägt seine Herkunft. Die Oberfläche macht daraus die
+ * Unterscheidung zwischen "übernommen" und "bitte am Beleg prüfen".
+ */
+
+
+
+/** Standardzuordnung Paperless-Custom-Field → Mandatsfeld. Anpassbar in der Oberfläche. */
+const STANDARD_FELDZUORDNUNG = {
+  kontoinhaber: ['Kontoinhaber', 'Zahlungspflichtiger', 'Kontoinhaber*in'],
+  iban: ['IBAN'],
+  bic: ['BIC'],
+  mandatsId: ['Mandatsreferenz', 'Mandats-ID', 'Mandatsnummer'],
+  mandatsDatum: ['Mandatsdatum', 'Unterschriftsdatum', 'Datum Mandat'],
+  kind: ['Kind', 'Schüler*in', 'Teilnehmer*in', 'Name des Kindes'],
+  betrag: ['Betrag', 'Monatsbeitrag', 'Elternbeitrag']
+};
+
+const DATUM = /\b(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*[.\/]\s*(\d{2,4})\b/g;
+// Bewusst nur echte Leerzeichen als Trenner (kein \s): ein Zeilenumbruch
+// beendet die IBAN, sonst zieht das Muster das nächste Wort mit hinein.
+const IBAN_KANDIDAT = /\b([A-Z]{2})(\d{2})((?:[ ]?[A-Z0-9]){8,34})/g;
+const BIC_MIT_KONTEXT = /BIC[^A-Z0-9]{0,20}([A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?)\b/i;
+const BIC_FREI = /\b([A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?)\b/g;
+const MANDATS_ID = /Mandat(?:s)?(?:referenz|[-\s]?referenz|nummer|[-\s]?ID|[-\s]?Nr\.?)\s*[:\-]?\s*([A-Za-z0-9][A-Za-z0-9\/\-?:().,'+]{2,34})/i;
+const KONTOINHABER = /Kontoinhaber(?:in|\*in)?\s*(?:\(.*?\))?\s*[:\-]?\s*([^\n\r]{3,70})/i;
+const DATUM_MIT_KONTEXT = /(?:Ort,?\s*Datum|Datum,?\s*Unterschrift|Unterschrift|Datum)\s*[:\-]?\s*[^\n\r]{0,40}?(\d{1,2}\s*[.\/]\s*\d{1,2}\s*[.\/]\s*\d{2,4})/i;
+
+/** Wandelt ein deutsches Datum in ein ISO-Datum (JJJJ-MM-TT). */
+function zuIsoDatum(wert) {
+  if (!wert) return '';
+  const text = String(wert).trim();
+  const iso = text.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (iso) return `${iso[1]}-${iso[2]}-${iso[3]}`;
+  const de = text.match(/^(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*[.\/]\s*(\d{2,4})/);
+  if (!de) return '';
+  let [, tag, monat, jahr] = de;
+  if (jahr.length === 2) jahr = Number(jahr) > 70 ? `19${jahr}` : `20${jahr}`;
+  return `${jahr}-${String(monat).padStart(2, '0')}-${String(tag).padStart(2, '0')}`;
+}
+
+/** Wandelt ein ISO-Datum in das von windata erwartete TT.MM.JJJJ. */
+function zuDeutschemDatum(isoDatum) {
+  const treffer = String(isoDatum ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!treffer) return '';
+  return `${treffer[3]}.${treffer[2]}.${treffer[1]}`;
+}
+
+/** Liest einen Geldbetrag aus beliebigem Text ("42,50 €", "42.50") als Zahl. */
+function zuBetrag(wert) {
+  if (typeof wert === 'number') return Number.isFinite(wert) ? wert : null;
+  const text = String(wert ?? '').replace(/[^\d,.\-]/g, '');
+  if (!text) return null;
+  // Letztes Trennzeichen entscheidet über die Dezimalstelle.
+  const komma = text.lastIndexOf(',');
+  const punkt = text.lastIndexOf('.');
+  let normalisiert = text;
+  if (komma > punkt) normalisiert = text.replace(/\./g, '').replace(',', '.');
+  else if (punkt > komma) normalisiert = text.replace(/,/g, '');
+  const zahl = Number.parseFloat(normalisiert);
+  return Number.isFinite(zahl) ? zahl : null;
+}
+
+/** Baut aus der Paperless-Feldliste eine Zuordnung Feld-ID → Feldname. */
+function baueFeldIndex(customFieldsDefinition = []) {
+  const index = new Map();
+  for (const feld of customFieldsDefinition) index.set(feld.id, feld.name);
+  return index;
+}
+
+function customFeldWert(dokument, feldIndex, namen) {
+  const gesucht = namen.map((n) => n.toLowerCase());
+  for (const eintrag of dokument.custom_fields ?? []) {
+    const name = feldIndex.get(eintrag.field);
+    if (!name) continue;
+    if (gesucht.includes(name.toLowerCase())) {
+      const wert = eintrag.value;
+      if (wert !== null && wert !== undefined && String(wert).trim() !== '') {
+        return String(wert).trim();
+      }
+    }
+  }
+  return null;
+}
+
+function ersterGueltigerIban(text) {
+  for (const treffer of String(text ?? '').toUpperCase().matchAll(IBAN_KANDIDAT)) {
+    const [, land, pruefziffer, rest] = treffer;
+    const sollLaenge = IBAN_LAENGEN[land];
+    if (!sollLaenge) continue;
+    const kompakt = `${land}${pruefziffer}${rest}`.replace(/ /g, '');
+    if (kompakt.length < sollLaenge) continue;
+    // Auf die Sollänge des Landes zuschneiden, damit ein direkt
+    // anschließendes Wort ("...6986 00 Sparkasse") nicht stört.
+    const pruefung = pruefeIban(kompakt.slice(0, sollLaenge));
+    if (pruefung.gueltig) return pruefung.iban;
+  }
+  return null;
+}
+
+function findeBic(text) {
+  const mitKontext = String(text ?? '').match(BIC_MIT_KONTEXT);
+  if (mitKontext) return mitKontext[1].toUpperCase();
+  // Ohne Kontext nur nehmen, wenn genau ein Kandidat im Text steht.
+  const kandidaten = [...String(text ?? '').matchAll(BIC_FREI)].map((t) => t[1]);
+  const eindeutig = [...new Set(kandidaten)];
+  return eindeutig.length === 1 ? eindeutig[0] : null;
+}
+
+function findeMandatsDatum(text) {
+  const mitKontext = String(text ?? '').match(DATUM_MIT_KONTEXT);
+  if (mitKontext) return zuIsoDatum(mitKontext[1]);
+  const alle = [...String(text ?? '').matchAll(DATUM)].map((t) => zuIsoDatum(t[0])).filter(Boolean);
+  // Ohne Kontext: das späteste Datum im Beleg ist am ehesten die Unterschrift.
+  return alle.length ? alle.sort().at(-1) : '';
+}
+
+/**
+ * Wandelt ein Paperless-Dokument in ein Mandat um.
+ * @param {object} dokument Paperless-Dokument (mit content und custom_fields)
+ * @param {object} optionen { feldIndex: Map, zuordnung: object }
+ */
+function extrahiereMandat(dokument, optionen = {}) {
+  const feldIndex = optionen.feldIndex ?? new Map();
+  const zuordnung = { ...STANDARD_FELDZUORDNUNG, ...(optionen.zuordnung ?? {}) };
+  const text = dokument.content ?? '';
+
+  const quelle = {};
+  const fehler = [];    // blockierend: die Zeile kann so nicht eingezogen werden
+  const hinweise = [];  // nicht blockierend: bitte am Beleg gegenlesen
+
+  const hole = (schluessel, ausText) => {
+    const ausFeld = customFeldWert(dokument, feldIndex, zuordnung[schluessel] ?? []);
+    if (ausFeld) {
+      quelle[schluessel] = 'feld';
+      return ausFeld;
+    }
+    const gefunden = ausText ? ausText() : null;
+    quelle[schluessel] = gefunden ? 'text' : 'fehlt';
+    return gefunden ?? '';
+  };
+
+  const iban = normalisiereIban(hole('iban', () => ersterGueltigerIban(text)));
+  const bic = String(hole('bic', () => findeBic(text)) ?? '').toUpperCase();
+  const kontoinhaber = hole('kontoinhaber', () => {
+    const treffer = text.match(KONTOINHABER);
+    if (treffer) return treffer[1].trim();
+    return dokument.correspondent_name ?? null;
+  });
+  const mandatsId = hole('mandatsId', () => {
+    const treffer = text.match(MANDATS_ID);
+    return treffer ? treffer[1].trim() : null;
+  });
+  const mandatsDatum = zuIsoDatum(hole('mandatsDatum', () => findeMandatsDatum(text)));
+  const kind = hole('kind', () => null);
+  const betrag = zuBetrag(hole('betrag', () => null));
+
+  const ibanPruefung = pruefeIban(iban);
+  if (!ibanPruefung.gueltig) fehler.push(ibanPruefung.fehler);
+
+  const bicPruefung = pruefeBic(bic);
+  if (!bicPruefung.gueltig) fehler.push(bicPruefung.fehler);
+  else if (bic && !bicPasstZuIban(bic, iban)) {
+    hinweise.push('BIC und IBAN gehören zu verschiedenen Ländern');
+  }
+
+  if (!kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
+  if (!mandatsId) fehler.push('Mandatsreferenz fehlt');
+  if (!mandatsDatum) fehler.push('Mandatsdatum fehlt');
+  else if (mandatsDatum > new Date().toISOString().slice(0, 10)) {
+    hinweise.push('Mandatsdatum liegt in der Zukunft');
+  }
+
+  // Aus dem OCR-Text gelesene Angaben sind brauchbar, aber nicht bestätigt.
+  // Sie blockieren den Einzug nicht — sie gehören vor dem Lauf gegengelesen.
+  const ausText = ['iban', 'mandatsId', 'mandatsDatum']
+    .filter((schluessel) => quelle[schluessel] === 'text');
+  if (ausText.length) {
+    hinweise.push(`aus der Texterkennung gelesen: ${ausText.join(', ')} — am Beleg prüfen`);
+  }
+
+  return {
+    dokumentId: dokument.id ?? null,
+    titel: dokument.title ?? '',
+    kontoinhaber: kontoinhaber || '',
+    kind: kind || '',
+    iban: ibanPruefung.gueltig ? ibanPruefung.iban : iban,
+    bic,
+    mandatsId: mandatsId || '',
+    mandatsDatum,
+    betrag,
+    sequenz: 'RCUR',
+    quelle,
+    fehler,
+    hinweise,
+    // Alles, was der Prüfung auffiel — für Anzeigen, die nicht unterscheiden.
+    warnungen: [...fehler, ...hinweise],
+    // Ohne blockierenden Fehler kann die Zeile in den Lauf.
+    uebernehmen: fehler.length === 0,
+    // Nichts zu prüfen und nichts zu beanstanden.
+    einwandfrei: fehler.length === 0 && hinweise.length === 0
+  };
+}
+
+/**
+ * Baut ein Mandat aus Werten, die bereits strukturiert vorliegen — also aus
+ * einem digital ausgefüllten Formular. Hier gibt es nichts zu raten: Was
+ * fehlt oder nicht stimmt, ist ein Fehler, kein Prüfhinweis.
+ */
+function mandatAusStrukturiertenFeldern(dokument, roh) {
+  const fehler = [];
+  const hinweise = [];
+
+  const ibanPruefung = pruefeIban(roh.iban);
+  if (!ibanPruefung.gueltig) fehler.push(ibanPruefung.fehler);
+
+  const bicPruefung = pruefeBic(roh.bic);
+  if (!bicPruefung.gueltig) fehler.push(bicPruefung.fehler);
+  else if (roh.bic && !bicPasstZuIban(roh.bic, roh.iban)) {
+    hinweise.push('BIC und IBAN gehören zu verschiedenen Ländern');
+  }
+
+  if (!roh.kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
+
+  // Der Unterstrich aus dem alten Schema wird ersetzt, nicht bemängelt:
+  // BWS_Meier-Lea und BWS-Meier-Lea meinen dasselbe Mandat, und nur die
+  // zweite Form übersteht den SEPA-Zeichensatz unverändert.
+  const mandatsId = String(roh.mandatsId ?? '').replace(/_/g, '-');
+  if (!mandatsId) fehler.push('Mandatsreferenz fehlt');
+  else {
+    if (mandatsId !== roh.mandatsId) {
+      hinweise.push(`Unterstrich in der Mandatsreferenz durch Bindestrich ersetzt: ${mandatsId}`);
+    }
+    const referenz = pruefeMandatsreferenz(mandatsId);
+    if (!referenz.unveraendert) {
+      hinweise.push(
+        `Mandatsreferenz enthält ${referenz.ersetzt.join(' ')} — im SEPA-Zeichensatz nicht zulässig, ` +
+        `in der Datei steht "${referenz.sepaForm}"`
+      );
+    }
+  }
+
+  const mandatsDatum = zuIsoDatum(roh.mandatsDatum);
+  if (!mandatsDatum) fehler.push('Mandatsdatum fehlt');
+  else if (mandatsDatum > new Date().toISOString().slice(0, 10)) {
+    hinweise.push('Mandatsdatum liegt in der Zukunft');
+  }
+
+  return {
+    dokumentId: dokument.id ?? null,
+    titel: dokument.name ?? dokument.title ?? '',
+    kontoinhaber: roh.kontoinhaber || '',
+    kind: roh.kind || '',
+    iban: ibanPruefung.gueltig ? ibanPruefung.iban : (roh.iban || ''),
+    bic: bicPruefung.bic,
+    mandatsId,
+    mandatsDatum,
+    betrag: zuBetrag(roh.betrag),
+    sequenz: 'RCUR',
+    quelle: { iban: 'feld', kontoinhaber: 'feld', mandatsId: 'feld', mandatsDatum: 'feld' },
+    fehler,
+    hinweise,
+    warnungen: [...fehler, ...hinweise],
+    uebernehmen: fehler.length === 0,
+    einwandfrei: fehler.length === 0 && hinweise.length === 0
+  };
+}
+
+/** Erkennt am Text, ob ein Dokument das SEPA-Formular der BildungsWerkstatt ist. */
+function istBwsFormular(text) {
+  return /SEPA\s*-?\s*Lastschriftmandat/i.test(String(text ?? ''))
+    && /BildungsWerkstatt|Gl[äa]ubiger\s*-?\s*Identifikationsnummer/i.test(String(text ?? ''));
+}
+
+/**
+ * Wandelt ein Dokument in eine Liste von Mandaten.
+ *
+ * Ein eingescanntes Dokument enthält oft mehrere Mandate hintereinander.
+ * Sind Custom Fields gepflegt, gilt der einfache Weg (ein Dokument, ein
+ * Mandat); sonst greifen die Formularregeln, die den Scan zerlegen.
+ */
+function extrahiereMandateAusDokument(dokument, optionen = {}) {
+  const hatFelder = (dokument.custom_fields ?? []).length > 0;
+  const text = dokument.content ?? '';
+
+  // Mandate aus paperless.io haben ein festes Layout und digitalen Text —
+  // sie werden mit eigenen Regeln gelesen, ohne Rekonstruktionsversuche.
+  if (!hatFelder && optionen.ioMandat?.istIoMandat(text)) {
+    const roh = optionen.ioMandat.leseIoMandat(text);
+    return [vereineMitIoMandat(extrahiereMandat({ ...dokument, content: '' }, optionen), roh, dokument)];
+  }
+
+  if (hatFelder || !optionen.bwsFormular || !istBwsFormular(text)) {
+    return [extrahiereMandat(dokument, optionen)];
+  }
+
+  const abschnitte = optionen.bwsFormular.leseBwsMandate(text);
+  return abschnitte.map((roh, i) => {
+    const teilDokument = {
+      ...dokument,
+      id: dokument.id,
+      title: abschnitte.length > 1
+        ? `${dokument.title ?? ''} (Mandat ${i + 1} von ${abschnitte.length})`
+        : dokument.title,
+      content: ''
+    };
+    const mandat = extrahiereMandat(teilDokument, optionen);
+    return vereineMitFormular(mandat, roh);
+  });
+}
+
+/**
+ * Übernimmt die Werte eines paperless.io-Mandats.
+ *
+ * Der Text ist digital erzeugt, deshalb gilt hier: Was fehlt, fehlt
+ * tatsächlich — es ist ein Fehler, kein Lesehinweis.
+ */
+function vereineMitIoMandat(mandat, roh, dokument) {
+  const fehler = [];
+  const hinweise = [...roh.hinweise];
+
+  const ibanPruefung = pruefeIban(roh.iban);
+  if (!ibanPruefung.gueltig) {
+    fehler.push(roh.iban ? ibanPruefung.fehler : 'IBAN im Mandat nicht ausgefüllt');
+  }
+  if (!roh.kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
+
+  const mandatsId = String(roh.mandatsId ?? '').replace(/_/g, '-');
+  if (!mandatsId) fehler.push('Mandatsreferenz fehlt');
+  else if (mandatsId !== roh.mandatsId) {
+    hinweise.push(`Unterstrich in der Mandatsreferenz durch Bindestrich ersetzt: ${mandatsId}`);
+  }
+  if (!roh.mandatsDatum) fehler.push('Mandatsdatum fehlt');
+
+  if (roh.kreditinstitut) hinweise.push(`Kreditinstitut laut Mandat: ${roh.kreditinstitut}`);
+  if (roh.glaeubigerId) hinweise.push(`Gläubiger-ID im Mandat: ${roh.glaeubigerId}`);
+
+  return {
+    ...mandat,
+    titel: dokument.name ?? dokument.title ?? mandat.titel,
+    kontoinhaber: roh.kontoinhaber,
+    kind: roh.kind || mandat.kind,
+    iban: ibanPruefung.gueltig ? ibanPruefung.iban : roh.iban,
+    bic: roh.bic,
+    mandatsId,
+    mandatsDatum: roh.mandatsDatum,
+    glaeubigerIdBeleg: roh.glaeubigerId,
+    quelle: { iban: 'feld', kontoinhaber: 'feld', mandatsId: 'feld', mandatsDatum: 'feld' },
+    fehler,
+    hinweise,
+    warnungen: [...fehler, ...hinweise],
+    uebernehmen: fehler.length === 0,
+    einwandfrei: fehler.length === 0 && hinweise.length === 0
+  };
+}
+
+/** Übernimmt die Werte der Formularerkennung in ein Mandat. */
+function vereineMitFormular(mandat, roh) {
+  const ibanPruefung = pruefeIban(roh.iban);
+  const fehler = [];
+  const hinweise = [...roh.hinweise];
+
+  if (!ibanPruefung.gueltig) fehler.push(ibanPruefung.fehler);
+  if (!roh.kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
+  if (!roh.mandatsId) fehler.push('Mandatsreferenz fehlt');
+  if (!roh.mandatsDatum) fehler.push('Mandatsdatum fehlt');
+  if (roh.iban && !roh.ibanSicher) {
+    hinweise.push(`IBAN im Beleg: ${roh.ibanRoh}`);
+  }
+
+  return {
+    ...mandat,
+    kontoinhaber: roh.kontoinhaber || mandat.kontoinhaber,
+    kind: roh.kind || mandat.kind,
+    iban: ibanPruefung.gueltig ? ibanPruefung.iban : roh.iban,
+    bic: roh.bic || mandat.bic,
+    mandatsId: roh.mandatsId || mandat.mandatsId,
+    mandatsDatum: roh.mandatsDatum || mandat.mandatsDatum,
+    glaeubigerIdBeleg: roh.glaeubigerId,
+    ibanRoh: roh.ibanRoh,
+    quelle: { ...mandat.quelle, iban: roh.ibanSicher ? 'text' : 'text-unsicher' },
+    fehler,
+    hinweise,
+    warnungen: [...fehler, ...hinweise],
+    uebernehmen: fehler.length === 0,
+    einwandfrei: fehler.length === 0 && hinweise.length === 0
+  };
+}
+
+/** Wandelt eine Liste Paperless-Dokumente um und sortiert nach Kontoinhaber. */
+function extrahiereMandate(dokumente, optionen = {}) {
+  return dokumente
+    .flatMap((d) => extrahiereMandateAusDokument(d, optionen))
+    .sort((a, b) => a.kontoinhaber.localeCompare(b.kontoinhaber, 'de'));
+}
+
+
+// ---- src/ocr-iban.js -------------------------------------------------
+/**
+ * IBAN aus schlecht erkanntem Formulartext gewinnen.
+ *
+ * Die Mandate der BildungsWerkstatt sind handschriftlich ausgefüllte,
+ * gescannte Formulare. Die Texterkennung liefert dort Zeilen wie
+ *   "DE 86/5001/0513/5442/0050/+0"  oder  "DE 13/1203100001001613115,16"
+ * — Schrägstriche und Kommas als Kästchentrenner, dazu vertauschte Zeichen.
+ *
+ * Grundsatz dieses Moduls: Eine rekonstruierte IBAN wird niemals
+ * stillschweigend übernommen. Die Prüfziffer trifft zufällig in etwa einem
+ * von 97 Fällen zu — bei vielen Rekonstruktionsversuchen ist das kein
+ * Beweis mehr. Deshalb gilt:
+ *   - unverändert gültig  → sicher
+ *   - genau eine Variante gültig → Vorschlag, ausdrücklich zu prüfen
+ *   - mehrere Varianten gültig → kein Vorschlag, nur Meldung
+ */
+
+
+/** Zeichen, die die Texterkennung regelmäßig verwechselt. */
+const VERWECHSLUNGEN = {
+  O: '0', Q: '0', D: '0', I: '1', L: '1', J: '1', S: '5', B: '8',
+  G: '6', Z: '2', T: '7', A: '4', '+': '4', '?': '7', '!': '1'
+};
+
+/** Alles entfernen, was in einer IBAN nicht vorkommen kann. */
+function bereinige(text) {
+  return String(text ?? '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+}
+
+/** Ersetzt an einer Stelle ein verwechseltes Zeichen. */
+function mitZiffern(kompakt, abStelle = 2) {
+  const kopf = kompakt.slice(0, abStelle);
+  const rest = [...kompakt.slice(abStelle)]
+    .map((z) => (VERWECHSLUNGEN[z] !== undefined && /[A-Z+?!]/.test(z) ? VERWECHSLUNGEN[z] : z))
+    .join('');
+  return kopf + rest;
+}
+
+/**
+ * Schneidet aus einer Zeile den Bereich ab dem Länderkürzel heraus.
+ * Nimmt bis zu vier Zeichen mehr mit, als die IBAN lang sein darf —
+ * so bleibt Raum für Zeichen, die die Texterkennung zu viel gelesen hat.
+ */
+function rohkandidaten(text) {
+  const treffer = [];
+  const zeilen = String(text ?? '').split(/\r?\n/);
+  for (const zeile of zeilen) {
+    const gross = zeile.toUpperCase();
+    for (const start of [...gross.matchAll(/\b([A-Z]{2})\s*[0-9OISBGZ]/g)]) {
+      const land = start[1];
+      if (!IBAN_LAENGEN[land]) continue;
+      const ab = gross.slice(start.index);
+      const kompakt = bereinige(ab);
+      const soll = IBAN_LAENGEN[land];
+      if (kompakt.length < soll - 2) continue;
+
+      // "DES ZAHLUNGSEMPFÄNGERS" beginnt auch mit DE + Buchstabe. Eine IBAN
+      // besteht hinter der Länderkennung fast nur aus Ziffern — daran lässt
+      // sich laufender Text aussortieren. Gemessen wird auf der Form, in der
+      // typische Verwechslungen schon aufgelöst sind: ein Scan, der "0" als
+      // "O" liest, ist deshalb noch keine Fließtextzeile.
+      const kern = mitZiffern(kompakt).slice(2, soll + 2);
+      const ziffern = (kern.match(/[0-9]/g) ?? []).length;
+      if (ziffern / kern.length < 0.6) continue;
+
+      treffer.push({ land, roh: ab.trim(), kompakt, ziffernAnteil: ziffern / kern.length });
+    }
+  }
+  // Der ziffernreichste Kandidat ist am ehesten die IBAN.
+  return treffer.sort((a, b) => b.ziffernAnteil - a.ziffernAnteil);
+}
+
+/**
+ * Erzeugt Varianten eines zu langen Kandidaten, indem je ein Zeichen
+ * entfernt wird. Bei mehr als zwei überzähligen Zeichen wird nicht
+ * mehr geraten — dann ist der Scan zu schlecht.
+ */
+function kuerzungen(kompakt, sollLaenge) {
+  const zuviel = kompakt.length - sollLaenge;
+  if (zuviel <= 0) return [kompakt];
+  if (zuviel > 2) return [];
+  const varianten = new Set();
+  if (zuviel === 1) {
+    for (let i = 2; i < kompakt.length; i += 1) {
+      varianten.add(kompakt.slice(0, i) + kompakt.slice(i + 1));
+    }
+  } else {
+    for (let i = 2; i < kompakt.length; i += 1) {
+      for (let j = i + 1; j < kompakt.length; j += 1) {
+        varianten.add(kompakt.slice(0, i) + kompakt.slice(i + 1, j) + kompakt.slice(j + 1));
+      }
+    }
+  }
+  return [...varianten];
+}
+
+/**
+ * Sucht die IBAN in einem Formulartext.
+ * @returns {{iban:string, sicher:boolean, roh:string, mehrdeutig:boolean, hinweis:string}|null}
+ */
+function findeIbanImFormular(text) {
+  const kandidaten = rohkandidaten(text);
+  if (!kandidaten.length) return null;
+
+  // 1. Der einfache Fall: irgendwo steht eine unbeschädigte IBAN.
+  for (const kandidat of kandidaten) {
+    const soll = IBAN_LAENGEN[kandidat.land];
+    if (kandidat.kompakt.length >= soll) {
+      const genau = pruefeIban(kandidat.kompakt.slice(0, soll));
+      if (genau.gueltig) {
+        return {
+          iban: genau.iban, sicher: true, roh: kandidat.roh,
+          mehrdeutig: false, hinweis: ''
+        };
+      }
+    }
+  }
+
+  // 2. Rekonstruktion: verwechselte Zeichen ersetzen, Überzähliges entfernen.
+  const gefunden = new Set();
+  let rohZurBesten = '';
+  for (const kandidat of kandidaten) {
+    const soll = IBAN_LAENGEN[kandidat.land];
+    for (const grundform of [kandidat.kompakt, mitZiffern(kandidat.kompakt)]) {
+      for (const variante of kuerzungen(grundform, soll)) {
+        if (variante.length !== soll) continue;
+        if (pruefeIban(variante).gueltig) {
+          gefunden.add(variante);
+          if (!rohZurBesten) rohZurBesten = kandidat.roh;
+        }
+      }
+    }
+  }
+
+  if (gefunden.size === 1) {
+    return {
+      iban: [...gefunden][0],
+      sicher: false,
+      roh: rohZurBesten,
+      mehrdeutig: false,
+      hinweis: 'IBAN aus einem beschädigten Scan rekonstruiert — zwingend am Beleg prüfen'
+    };
+  }
+  if (gefunden.size > 1) {
+    return {
+      iban: '',
+      sicher: false,
+      roh: kandidaten[0].roh,
+      mehrdeutig: true,
+      hinweis: `Der Scan lässt ${gefunden.size} verschiedene gültige IBANs zu — von Hand erfassen`
+    };
+  }
+  return {
+    iban: '',
+    sicher: false,
+    roh: kandidaten[0].roh,
+    mehrdeutig: false,
+    hinweis: 'IBAN im Scan nicht lesbar — von Hand erfassen'
+  };
+}
+
+/** Räumt einen aus dem Scan gelesenen BIC auf ("DK: BYLADEM, 1001" → "BYLADEM1001"). */
+function findeBicImFormular(text) {
+  const zeilen = String(text ?? '').split(/\r?\n/);
+  for (let i = 0; i < zeilen.length; i += 1) {
+    const zeile = zeilen[i];
+    // Der BIC steht entweder hinter "BIC" oder in der Zeile über "Kreditinstitut".
+    // Der BIC steht entweder in einer Zeile, die ihn benennt, oder direkt
+    // über dem Vordruck "Kreditinstitut (Name und BIC)".
+    const benannt = /BIC/i.test(zeile);
+    const ueberVordruck = /Kreditinstitut/i.test(zeilen[i + 1] ?? '');
+    if (!benannt && !ueberVordruck) continue;
+
+    // Fließtext ausschließen: aus "von meinem/unserem Konto mittels …" lässt
+    // sich zufällig ein formal gültiger BIC schneiden. Ein falscher BIC ist
+    // schlimmer als gar keiner — bei deutschen IBANs ist er entbehrlich.
+    if (zeile.trim().split(/\s+/).length > 5) continue;
+    // Der Vordrucktext selbst ("Kreditinstitut (Name und BIC)") ergibt sonst
+    // Fenster wie "KREDITINSTI", die formal als BIC durchgehen.
+    const ohneVordruck = zeile
+      .replace(/Kreditinstitut(?:s|e)?/gi, ' ')
+      .replace(/Name\s+(?:und|des)/gi, ' ')
+      .replace(/BIC/gi, ' ');
+    const kompakt = ohneVordruck.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    const funde = [];
+    for (const laenge of [11, 8]) {
+      for (let start = 0; start + laenge <= kompakt.length; start += 1) {
+        const stueck = kompakt.slice(start, start + laenge);
+        if (!/^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$/.test(stueck)) continue;
+        // Stelle 5 und 6 tragen die Länderkennung. Ohne diese Prüfung hält
+        // das Muster auch Fließtext wie "VONMEINEMUN" für einen BIC.
+        if (!IBAN_LAENGEN[stueck.slice(4, 6)]) continue;
+        funde.push(stueck);
+      }
+    }
+    // Ein Fenster kann sich um eine Stelle verschieben ("DKBYLADEM1001"
+    // enthält auch das scheinbar gültige "KBYLADEM100"). Deutsche Institute
+    // sind hier der Regelfall, deshalb haben sie Vorrang.
+    const deutsch = funde.filter((b) => b.slice(4, 6) === 'DE');
+    if (deutsch.length) return deutsch.sort((a, b) => b.length - a.length)[0];
+    if (funde.length) return funde.sort((a, b) => b.length - a.length)[0];
+  }
+  return '';
+}
+
+
+// ---- src/bws-formular.js ---------------------------------------------
+/**
+ * Regeln für die SEPA-Mandate der BildungsWerkstatt.
+ *
+ * Es gibt zwei Formularvarianten:
+ *   a) Anlage 1 des Betreuungsvertrags  ("Kontoinhaber/in:", "Kreditinstitut (Name und BIC)")
+ *   b) Anmeldung zum Mittagessen        ("BIC:", "IBAN:", zusätzlich E-Mail)
+ * Beide tragen dieselbe Gläubiger-Identifikationsnummer und dasselbe
+ * Referenzschema. Ein eingescanntes Dokument enthält oft mehrere Mandate
+ * hintereinander — deshalb wird der Text zuerst zerlegt.
+ */
+
+
+
+/** Gläubiger-Identifikationsnummer der BildungsWerkstatt e.V. */
+const GLAEUBIGER_ID = 'DE82BWS00002311070';
+
+/**
+ * So werden die Mandatsreferenzen der BildungsWerkstatt gebildet.
+ *
+ * Auf den Papierformularen steht das Schema mit Unterstrich
+ * (BWS_Nachname-Vorname). Der Unterstrich gehört nicht zum SEPA-Zeichensatz
+ * und würde in der Datei zu einem Leerzeichen — die Referenz wiche damit von
+ * der auf dem unterschriebenen Mandat ab. Deshalb durchgängig Bindestrich.
+ */
+const REFERENZ_SCHEMA = 'BWS-{nachname}-{vorname}';
+
+/** Das alte Schema mit Unterstrich, wie es auf den Papierformularen steht. */
+const REFERENZ_SCHEMA_ALT = 'BWS_{nachname}-{vorname}';
+
+/**
+ * Bringt eine vorhandene Referenz auf die SEPA-taugliche Form.
+ * Aus BWS_Meier-Lea wird BWS-Meier-Lea; alles andere bleibt, wie es ist.
+ */
+function aufSepaFormBringen(referenz) {
+  return String(referenz ?? '').replace(/_/g, '-');
+}
+
+const MANDATS_BEGINN = /SEPA\s*-?\s*Lastschriftmandat\s+einer\s+wiederkehrenden\s+Lastschrift/gi;
+const FORMULAR_KONTOINHABER = /Kontoinhaber\/?(?:in|\*in)?\s*:?\s*_*\s*([^\n\r]{2,70})/i;
+const KIND_MIT_KLAMMER = /([^\n\r]{3,80})\r?\n\s*\(\s*Vorname,\s*Name/i;
+const DATUM_ZEILE = /(?:Ort,\s*Datum|Ort\s*,\s*Datum)[^\n\r]{0,40}/i;
+const FORMULAR_DATUM = /(\d{1,2})\s*[.\/]\s*(\d{1,2})\s*[.\/]\s*(\d{2,4})/g;
+
+/**
+ * Zerlegt den Text eines Dokuments in einzelne Mandate.
+ * Enthält das Dokument keinen Trenner, gilt der ganze Text als ein Mandat.
+ */
+function teileMandate(text) {
+  const inhalt = String(text ?? '');
+  const stellen = [...inhalt.matchAll(MANDATS_BEGINN)].map((t) => t.index);
+  if (stellen.length <= 1) return [inhalt];
+
+  const abschnitte = [];
+  for (let i = 0; i < stellen.length; i += 1) {
+    const von = stellen[i];
+    const bis = i + 1 < stellen.length ? stellen[i + 1] : inhalt.length;
+    abschnitte.push(inhalt.slice(von, bis));
+  }
+  return abschnitte;
+}
+
+/** Räumt einen aus dem Formular gelesenen Namen auf. */
+function saubereZeile(wert) {
+  return String(wert ?? '')
+    .replace(/[\\_|]+/g, ' ')
+    .replace(/\((?:V)?orname[^)]*\)/gi, '')
+    .replace(/Vorname und Name/gi, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+    .replace(/^[.,;:\-\s]+|[.,;:\-\s]+$/g, '');
+}
+
+/** Sucht das Unterschriftsdatum in der Nähe der Zeile "Ort, Datum". */
+function findeUnterschriftsdatum(abschnitt) {
+  const zeilen = abschnitt.split(/\r?\n/);
+  for (let i = 0; i < zeilen.length; i += 1) {
+    if (!DATUM_ZEILE.test(zeilen[i])) continue;
+    // Das Datum steht in derselben Zeile oder in einer der beiden davor.
+    for (const zeile of [zeilen[i], zeilen[i - 1] ?? '', zeilen[i - 2] ?? '']) {
+      const treffer = [...zeile.matchAll(FORMULAR_DATUM)];
+      if (treffer.length) return zuIsoDatum(treffer.at(-1)[0]);
+    }
+  }
+  const alle = [...abschnitt.matchAll(FORMULAR_DATUM)].map((t) => zuIsoDatum(t[0])).filter(Boolean);
+  return alle.length ? alle.sort().at(-1) : '';
+}
+
+/**
+ * Bildet die Mandatsreferenz nach dem Schema der BildungsWerkstatt.
+ * @param {string} kind  "Nachname, Vorname" oder "Vorname Nachname"
+ */
+function bildeMandatsreferenz(kind, schema = REFERENZ_SCHEMA) {
+  const text = saubereZeile(kind);
+  if (!text) return '';
+
+  let nachname = '';
+  let vorname = '';
+  if (text.includes(',')) {
+    // "VAN BUGGENUM, Noah" — vor dem Komma steht der Nachname.
+    const [links, rechts = ''] = text.split(',');
+    nachname = links.trim();
+    vorname = rechts.trim().split(/\s+/)[0] ?? '';
+  } else {
+    const teile = text.split(/\s+/).filter(Boolean);
+    vorname = teile[0] ?? '';
+    nachname = teile.length > 1 ? teile.at(-1) : '';
+  }
+
+  const sauber = (wert) => wert.replace(/[^A-Za-zÄÖÜäöüß-]/g, '');
+  return schema
+    .replaceAll('{nachname}', sauber(nachname))
+    .replaceAll('{vorname}', sauber(vorname))
+    .replace(/[-_]{2,}/g, '-')
+    .replace(/[-_]$/, '');
+}
+
+/**
+ * Liest ein einzelnes Mandat aus dem Abschnitt eines Formulars.
+ * @returns {object} Rohwerte samt Herkunft und Befunden
+ */
+function leseBwsMandat(abschnitt, laufendeNummer = 1) {
+  const hinweise = [];
+
+  const inhaberTreffer = abschnitt.match(FORMULAR_KONTOINHABER);
+  const kontoinhaber = saubereZeile(inhaberTreffer?.[1] ?? '');
+
+  const kindTreffer = abschnitt.match(KIND_MIT_KLAMMER);
+  const kind = saubereZeile(kindTreffer?.[1] ?? '');
+
+  const ibanFund = findeIbanImFormular(abschnitt);
+  if (ibanFund?.hinweis) hinweise.push(ibanFund.hinweis);
+
+  const bic = findeBicImFormular(abschnitt);
+  const mandatsDatum = findeUnterschriftsdatum(abschnitt);
+
+  const mandatsId = bildeMandatsreferenz(kind);
+  if (mandatsId) {
+    hinweise.push('Mandatsreferenz nach Schema gebildet — mit der Buchhaltung abgleichen');
+  }
+
+  const glaeubigerTreffer = abschnitt.match(/Gl[äa]ubiger\s*-?\s*Identifikationsnummer:?\s*([A-Z0-9]{10,35})/i);
+
+  return {
+    nummer: laufendeNummer,
+    kontoinhaber,
+    kind,
+    iban: ibanFund?.iban ?? '',
+    ibanSicher: Boolean(ibanFund?.sicher),
+    ibanRoh: ibanFund?.roh ?? '',
+    bic,
+    mandatsId,
+    mandatsDatum,
+    glaeubigerId: (glaeubigerTreffer?.[1] ?? '').toUpperCase(),
+    hinweise
+  };
+}
+
+/** Liest alle Mandate aus dem Text eines Dokuments. */
+function leseBwsMandate(text) {
+  return teileMandate(text).map((abschnitt, i) => leseBwsMandat(abschnitt, i + 1));
+}
+
+
+// ---- src/windata.js --------------------------------------------------
+/**
+ * Erzeugt eine Importdatei im Format "windata CSV" für SEPA-Basislastschriften.
+ *
+ * Feldbelegung nach der Datensatzbeschreibung windata Zahlungen.CSV:
+ *   1 AG Name · 2 AG IBAN · 3 AG BIC · 4 Zahlpfl Name · 5 Name2 · 6 Strasse ·
+ *   7 Ort · 8 Zahlpfl IBAN · 9 Zahlpfl BIC · 10 Betrag · 11 Währung ·
+ *   12 Zahlart · 13 Termin · 14–27 VWZ1–VWZ14 · 28 Ref-ID · 29 Mandat-ID ·
+ *   30 Mandat-Datum · 31 AG Gläubiger-ID · 32 Sequenz ·
+ *   33 Übergeordneter Auftraggeber · 34 Laufzeit · 35 zahlweise
+ * Die Felder 34 und 35 gibt es erst ab Version 1.2.
+ *
+ * Trennzeichen Semikolon, Zeilenende CR/LF, Datum TT.MM.JJJJ,
+ * Betrag mit Komma. Anführungszeichen sind im Format nicht erlaubt und
+ * werden von sepaText() ohnehin entfernt.
+ */
+
+
+
+
+const ZAHLARTEN = {
+  BASIS: 'BASIS',   // SEPA-Basislastschrift (der Regelfall im Verein)
+  FIRMEN: 'FIRMEN', // SEPA-Firmenlastschrift (B2B)
+  COR1: 'COR1'      // Eillastschrift
+};
+
+const SEQUENZEN = ['FRST', 'RCUR', 'OOFF', 'FNAL'];
+
+const FELDLAENGEN = {
+  agName: 35, agKonto: 35, agBank: 11,
+  name: 35, name2: 35, strasse: 27, ort: 27, konto: 35, bank: 11,
+  waehrung: 3, zahlart: 6, refId: 35, mandatsId: 35, glaeubigerId: 35,
+  sequenz: 4, uebergeordnet: 70, zahlweise: 2
+};
+
+/** Betrag im windata-Format: Punkt als Tausender entfällt, Komma als Dezimaltrenner. */
+function formatiereBetrag(betrag) {
+  const zahl = Number(betrag);
+  if (!Number.isFinite(zahl)) return '';
+  return zahl.toFixed(2).replace('.', ',');
+}
+
+/**
+ * Prüft eine Position, bevor sie in die Datei geschrieben wird.
+ * @returns {string[]} Liste der Fehler; leer = in Ordnung
+ */
+function pruefePosten(posten, auftraggeber) {
+  const fehler = [];
+
+  if (!auftraggeber?.name) fehler.push('Name des Auftraggebers fehlt');
+  const agIban = pruefeIban(auftraggeber?.iban);
+  if (!agIban.gueltig) fehler.push(`Vereins-IBAN: ${agIban.fehler}`);
+  if (!auftraggeber?.glaeubigerId) fehler.push('Gläubiger-Identifikationsnummer fehlt');
+
+  if (!posten.name) fehler.push('Name der zahlungspflichtigen Person fehlt');
+  const iban = pruefeIban(posten.iban);
+  if (!iban.gueltig) fehler.push(`IBAN: ${iban.fehler}`);
+
+  const betrag = Number(posten.betrag);
+  if (!Number.isFinite(betrag) || betrag <= 0) fehler.push('Betrag fehlt oder ist nicht positiv');
+  else if (betrag > 999999999.99) fehler.push('Betrag überschreitet das Feldformat');
+
+  if (!posten.mandatsId) fehler.push('Mandatsreferenz fehlt');
+  if (!posten.mandatsDatum) fehler.push('Mandatsdatum fehlt');
+  if (!posten.termin) fehler.push('Fälligkeitstermin fehlt');
+  if (posten.sequenz && !SEQUENZEN.includes(posten.sequenz)) {
+    fehler.push(`Sequenz "${posten.sequenz}" ist keine der zulässigen (${SEQUENZEN.join(', ')})`);
+  }
+  return fehler;
+}
+
+/** Baut eine einzelne CSV-Zeile (Array der Feldwerte). */
+function baueZeile(posten, auftraggeber, optionen = {}) {
+  const version = optionen.version ?? '1.2';
+  const vwz = verwendungszweckZeilen(posten.verwendungszweck ?? '', 14, 27);
+
+  const zeile = [
+    feld(auftraggeber.name, FELDLAENGEN.agName),
+    feld(auftraggeber.iban, FELDLAENGEN.agKonto).replace(/\s/g, ''),
+    feld(auftraggeber.bic, FELDLAENGEN.agBank).replace(/\s/g, ''),
+    feld(posten.name, FELDLAENGEN.name),
+    feld(posten.name2 ?? '', FELDLAENGEN.name2),
+    feld(posten.strasse ?? '', FELDLAENGEN.strasse),
+    feld(posten.ort ?? '', FELDLAENGEN.ort),
+    feld(posten.iban, FELDLAENGEN.konto).replace(/\s/g, ''),
+    feld(posten.bic ?? '', FELDLAENGEN.bank).replace(/\s/g, ''),
+    formatiereBetrag(posten.betrag),
+    feld(posten.waehrung ?? 'EUR', FELDLAENGEN.waehrung),
+    feld(posten.zahlart ?? ZAHLARTEN.BASIS, FELDLAENGEN.zahlart),
+    zuDeutschemDatum(posten.termin)
+  ];
+
+  for (let i = 0; i < 14; i += 1) zeile.push(vwz[i] ?? '');
+
+  zeile.push(
+    feld(posten.refId ?? '', FELDLAENGEN.refId),
+    feld(posten.mandatsId, FELDLAENGEN.mandatsId),
+    zuDeutschemDatum(posten.mandatsDatum),
+    feld(auftraggeber.glaeubigerId, FELDLAENGEN.glaeubigerId).replace(/\s/g, ''),
+    feld(posten.sequenz ?? 'RCUR', FELDLAENGEN.sequenz),
+    feld(auftraggeber.uebergeordnet ?? '', FELDLAENGEN.uebergeordnet)
+  );
+
+  if (version === '1.2') {
+    zeile.push(
+      posten.laufzeit ? zuDeutschemDatum(posten.laufzeit) : '',
+      feld(posten.zahlweise ?? '', FELDLAENGEN.zahlweise)
+    );
+  }
+
+  // Semikolon würde die Satzstruktur zerstören; sepaText lässt es nicht durch,
+  // diese Zeile ist die Absicherung für den Fall geänderter Zeichenregeln.
+  return zeile.map((wert) => String(wert).replace(/[;"\r\n]/g, ' ').trim());
+}
+
+/**
+ * Erzeugt die vollständige windata-CSV.
+ * @returns {{csv: string, anzahl: number, summe: number, fehler: Array}}
+ */
+function baueWindataCsv(auftraggeber, postenListe, optionen = {}) {
+  const version = optionen.version ?? '1.2';
+  const zeilen = [`windata CSV ${version}`];
+  const fehler = [];
+  let summe = 0;
+  let anzahl = 0;
+
+  postenListe.forEach((posten, index) => {
+    const gefunden = pruefePosten(posten, auftraggeber);
+    if (gefunden.length) {
+      fehler.push({ zeile: index + 1, name: posten.name ?? '(ohne Namen)', fehler: gefunden });
+      return;
+    }
+    zeilen.push(baueZeile(posten, auftraggeber, { version }).join(';'));
+    summe += Number(posten.betrag);
+    anzahl += 1;
+  });
+
+  return {
+    csv: `${zeilen.join('\r\n')}\r\n`,
+    anzahl,
+    summe: Math.round(summe * 100) / 100,
+    fehler
+  };
+}
+
+/** Dateiname nach Muster BWS-Lastschrift-JJJJ-MM-TT-Verwendung.csv */
+function dateiname(termin, zusatz = '') {
+  const teil = sepaText(zusatz).replace(/\s+/g, '-');
+  return ['BWS-Lastschrift', termin || 'ohne-Termin', teil].filter(Boolean).join('-') + '.csv';
+}
+
+
+// ---- src/sepa-xml.js -------------------------------------------------
+/**
+ * Alternative Ausgabe: SEPA-Lastschrift als pain.008.001.02.
+ *
+ * windata kann diese Datei ebenso importieren wie die CSV. Sie ist der
+ * unveränderliche Standard und damit der Rückfallweg, falls die
+ * Feldzuordnung der CSV in windata einmal klemmt.
+ */
+
+
+
+function xmlEscape(wert) {
+  return String(wert ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function zeitstempel(datum = new Date()) {
+  return datum.toISOString().replace(/\.\d{3}Z$/, 'Z');
+}
+
+/**
+ * @param {object} auftraggeber { name, iban, bic, glaeubigerId }
+ * @param {Array} postenListe Positionen wie beim CSV-Export
+ * @param {object} optionen { nachrichtenId, sequenz, jetzt }
+ */
+function baueSepaXml(auftraggeber, postenListe, optionen = {}) {
+  const jetzt = optionen.jetzt ?? new Date();
+  const gueltige = [];
+  const fehler = [];
+
+  postenListe.forEach((posten, index) => {
+    const gefunden = pruefePosten(posten, auftraggeber);
+    if (gefunden.length) fehler.push({ zeile: index + 1, name: posten.name ?? '', fehler: gefunden });
+    else gueltige.push(posten);
+  });
+
+  // Eine pain.008-Nachricht darf je Zahlungsblock nur einen Sequenztyp und
+  // ein Fälligkeitsdatum führen — deshalb je Kombination ein eigener Block.
+  const bloecke = new Map();
+  for (const posten of gueltige) {
+    const schluessel = `${posten.sequenz ?? 'RCUR'}|${posten.termin}`;
+    if (!bloecke.has(schluessel)) bloecke.set(schluessel, []);
+    bloecke.get(schluessel).push(posten);
+  }
+
+  const summe = gueltige.reduce((s, p) => s + Number(p.betrag), 0);
+  const nachrichtenId = feld(optionen.nachrichtenId ?? `BWS-${jetzt.getTime()}`, 35);
+
+  const teile = [];
+  teile.push('<?xml version="1.0" encoding="UTF-8"?>');
+  teile.push('<Document xmlns="urn:iso:std:iso:20022:tech:xsd:pain.008.001.02" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">');
+  teile.push('  <CstmrDrctDbtInitn>');
+  teile.push('    <GrpHdr>');
+  teile.push(`      <MsgId>${xmlEscape(nachrichtenId)}</MsgId>`);
+  teile.push(`      <CreDtTm>${zeitstempel(jetzt)}</CreDtTm>`);
+  teile.push(`      <NbOfTxs>${gueltige.length}</NbOfTxs>`);
+  teile.push(`      <CtrlSum>${summe.toFixed(2)}</CtrlSum>`);
+  teile.push('      <InitgPty>');
+  teile.push(`        <Nm>${xmlEscape(feld(auftraggeber.name, 70))}</Nm>`);
+  teile.push('      </InitgPty>');
+  teile.push('    </GrpHdr>');
+
+  let blockNummer = 0;
+  for (const [schluessel, posten] of bloecke) {
+    blockNummer += 1;
+    const [sequenz, termin] = schluessel.split('|');
+    const blockSumme = posten.reduce((s, p) => s + Number(p.betrag), 0);
+
+    teile.push('    <PmtInf>');
+    teile.push(`      <PmtInfId>${xmlEscape(nachrichtenId)}-${blockNummer}</PmtInfId>`);
+    teile.push('      <PmtMtd>DD</PmtMtd>');
+    teile.push('      <BtchBookg>true</BtchBookg>');
+    teile.push(`      <NbOfTxs>${posten.length}</NbOfTxs>`);
+    teile.push(`      <CtrlSum>${blockSumme.toFixed(2)}</CtrlSum>`);
+    teile.push('      <PmtTpInf>');
+    teile.push('        <SvcLvl><Cd>SEPA</Cd></SvcLvl>');
+    teile.push('        <LclInstrm><Cd>CORE</Cd></LclInstrm>');
+    teile.push(`        <SeqTp>${xmlEscape(sequenz)}</SeqTp>`);
+    teile.push('      </PmtTpInf>');
+    teile.push(`      <ReqdColltnDt>${xmlEscape(termin)}</ReqdColltnDt>`);
+    teile.push('      <Cdtr>');
+    teile.push(`        <Nm>${xmlEscape(feld(auftraggeber.name, 70))}</Nm>`);
+    teile.push('      </Cdtr>');
+    teile.push('      <CdtrAcct>');
+    teile.push(`        <Id><IBAN>${xmlEscape(auftraggeber.iban.replace(/\s/g, ''))}</IBAN></Id>`);
+    teile.push('      </CdtrAcct>');
+    teile.push('      <CdtrAgt>');
+    if (auftraggeber.bic) {
+      teile.push(`        <FinInstnId><BIC>${xmlEscape(auftraggeber.bic)}</BIC></FinInstnId>`);
+    } else {
+      teile.push('        <FinInstnId><Othr><Id>NOTPROVIDED</Id></Othr></FinInstnId>');
+    }
+    teile.push('      </CdtrAgt>');
+    teile.push('      <ChrgBr>SLEV</ChrgBr>');
+    teile.push('      <CdtrSchmeId>');
+    teile.push('        <Id><PrvtId><Othr>');
+    teile.push(`          <Id>${xmlEscape(auftraggeber.glaeubigerId.replace(/\s/g, ''))}</Id>`);
+    teile.push('          <SchmeNm><Prtry>SEPA</Prtry></SchmeNm>');
+    teile.push('        </Othr></PrvtId></Id>');
+    teile.push('      </CdtrSchmeId>');
+
+    for (const p of posten) {
+      teile.push('      <DrctDbtTxInf>');
+      teile.push('        <PmtId>');
+      teile.push(`          <EndToEndId>${xmlEscape(feld(p.refId || p.mandatsId, 35))}</EndToEndId>`);
+      teile.push('        </PmtId>');
+      teile.push(`        <InstdAmt Ccy="EUR">${Number(p.betrag).toFixed(2)}</InstdAmt>`);
+      teile.push('        <DrctDbtTx>');
+      teile.push('          <MndtRltdInf>');
+      teile.push(`            <MndtId>${xmlEscape(feld(p.mandatsId, 35))}</MndtId>`);
+      teile.push(`            <DtOfSgntr>${xmlEscape(p.mandatsDatum)}</DtOfSgntr>`);
+      teile.push('            <AmdmntInd>false</AmdmntInd>');
+      teile.push('          </MndtRltdInf>');
+      teile.push('        </DrctDbtTx>');
+      if (p.bic) {
+        teile.push(`        <DbtrAgt><FinInstnId><BIC>${xmlEscape(p.bic)}</BIC></FinInstnId></DbtrAgt>`);
+      } else {
+        teile.push('        <DbtrAgt><FinInstnId><Othr><Id>NOTPROVIDED</Id></Othr></FinInstnId></DbtrAgt>');
+      }
+      teile.push('        <Dbtr>');
+      teile.push(`          <Nm>${xmlEscape(feld(p.name, 70))}</Nm>`);
+      teile.push('        </Dbtr>');
+      teile.push('        <DbtrAcct>');
+      teile.push(`          <Id><IBAN>${xmlEscape(p.iban.replace(/\s/g, ''))}</IBAN></Id>`);
+      teile.push('        </DbtrAcct>');
+      teile.push('        <RmtInf>');
+      teile.push(`          <Ustrd>${xmlEscape(feld(p.verwendungszweck ?? '', 140))}</Ustrd>`);
+      teile.push('        </RmtInf>');
+      teile.push('      </DrctDbtTxInf>');
+    }
+    teile.push('    </PmtInf>');
+  }
+
+  teile.push('  </CstmrDrctDbtInitn>');
+  teile.push('</Document>');
+
+  return {
+    xml: teile.join('\n'),
+    anzahl: gueltige.length,
+    summe: Math.round(summe * 100) / 100,
+    fehler
+  };
+}
+
+
+
+// ---- src/vorlage.js --------------------------------------------------
+/** Platzhalter der Verwendungszweck-Vorlage füllen. */
+
+const MONATE = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
+  'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+
+/**
+ * @param {string} vorlage z. B. "Elternbeitrag {monat} {jahr} {kind}"
+ * @param {object} mandat  Mandat mit kind, kontoinhaber, mandatsId
+ * @param {string} termin  Fälligkeit als ISO-Datum; bestimmt Monat und Jahr
+ */
+function fuelleVorlage(vorlage, mandat = {}, termin = '') {
+  const datum = termin ? new Date(`${termin}T12:00:00`) : new Date();
+  return String(vorlage ?? '')
+    .replaceAll('{kind}', mandat.kind || '')
+    .replaceAll('{name}', mandat.kontoinhaber || '')
+    .replaceAll('{monat}', MONATE[datum.getMonth()])
+    .replaceAll('{jahr}', String(datum.getFullYear()))
+    .replaceAll('{mandat}', mandat.mandatsId || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+
+// ---- src/paperless.js ------------------------------------------------
+/**
+ * Lesender Zugriff auf Paperless-ngx.
+ *
+ * Der Token bleibt nur im Arbeitsspeicher der Seite — er wird bewusst
+ * nicht gespeichert und nicht mitprotokolliert. Alle Aufrufe gehen
+ * direkt vom Browser an die Paperless-Instanz; es gibt keinen Server
+ * dazwischen, der Daten sehen könnte.
+ */
+
+/** Liest den Fehlertext einer Antwort so gut wie möglich aus. */
+async function fehlertext(antwort) {
+  try {
+    const text = await antwort.text();
+    return text.slice(0, 300);
+  } catch {
+    return '';
+  }
+}
+
+class PaperlessClient {
+  /**
+   * @param {string} basisUrl z. B. https://paperless.bws-ev.de
+   * @param {string} token API-Token aus dem Paperless-Benutzerprofil
+   */
+  constructor(basisUrl, token, fetchImpl = globalThis.fetch) {
+    this.basisUrl = String(basisUrl ?? '').replace(/\/+$/, '');
+    this.token = String(token ?? '').trim();
+    // fetch verliert als Objekteigenschaft seine Bindung an window und wirft
+    // im Browser sofort "Illegal invocation". Deshalb hier fest binden.
+    this.fetch = fetchImpl === globalThis.fetch ? fetchImpl.bind(globalThis) : fetchImpl;
+  }
+
+  get kopfzeilen() {
+    return {
+      Authorization: `Token ${this.token}`,
+      Accept: 'application/json'
+    };
+  }
+
+  async hole(pfad, parameter = {}) {
+    const url = new URL(`${this.basisUrl}${pfad}`);
+    for (const [schluessel, wert] of Object.entries(parameter)) {
+      if (wert !== undefined && wert !== null && wert !== '') url.searchParams.set(schluessel, wert);
+    }
+
+    let antwort;
+    try {
+      antwort = await this.fetch(url.toString(), { headers: this.kopfzeilen });
+    } catch (ursache) {
+      throw new Error(
+        'Verbindung zu Paperless nicht möglich. Häufigste Ursache: CORS ist für diese Seite ' +
+        'nicht freigegeben (siehe docs/paperless-setup.md) oder die Adresse stimmt nicht. ' +
+        `Technisch: ${ursache.message}`
+      );
+    }
+
+    if (antwort.status === 401 || antwort.status === 403) {
+      throw new Error('Paperless weist den Token ab (401/403). Token im Benutzerprofil neu erzeugen.');
+    }
+    if (!antwort.ok) {
+      throw new Error(`Paperless antwortet mit ${antwort.status}. ${await fehlertext(antwort)}`);
+    }
+    return antwort.json();
+  }
+
+  /** Prüft Adresse und Token mit einem billigen Aufruf. */
+  async pruefeVerbindung() {
+    const daten = await this.hole('/api/documents/', { page_size: 1 });
+    return { erreichbar: true, dokumenteGesamt: daten.count ?? 0 };
+  }
+
+  /** Definition aller Custom Fields (für die Feldzuordnung). */
+  async holeCustomFields() {
+    const daten = await this.hole('/api/custom_fields/', { page_size: 200 });
+    return daten.results ?? [];
+  }
+
+  /** Alle Tags (für die Auswahl des Mandats-Tags). */
+  async holeTags() {
+    const daten = await this.hole('/api/tags/', { page_size: 500 });
+    return daten.results ?? [];
+  }
+
+  /**
+   * Holt alle Dokumente zu einem Tag, über alle Seiten hinweg.
+   * @param {object} optionen { tagId, tagName, suchtext, seitenGroesse, beiFortschritt }
+   */
+  async holeDokumente(optionen = {}) {
+    const seitenGroesse = optionen.seitenGroesse ?? 100;
+    const parameter = {
+      page_size: seitenGroesse,
+      ordering: 'title',
+      truncate_content: 'false'
+    };
+    if (optionen.tagId) parameter.tags__id__all = optionen.tagId;
+    else if (optionen.tagName) parameter.tags__name__iexact = optionen.tagName;
+    if (optionen.suchtext) parameter.title_content = optionen.suchtext;
+
+    const alle = [];
+    let seite = 1;
+    let gesamt = null;
+
+    // Paperless liefert nächste Seiten als absolute URL; wir zählen selbst
+    // weiter, damit auch abweichende Host-Namen hinter Proxys funktionieren.
+    for (;;) {
+      const daten = await this.hole('/api/documents/', { ...parameter, page: seite });
+      gesamt = daten.count ?? 0;
+      alle.push(...(daten.results ?? []));
+      if (optionen.beiFortschritt) optionen.beiFortschritt(alle.length, gesamt);
+      if (!daten.next || alle.length >= gesamt || (daten.results ?? []).length === 0) break;
+      seite += 1;
+      if (seite > 200) break; // Schutz gegen Endlosschleifen
+    }
+    return alle;
+  }
+
+  /** Link auf das Dokument in der Paperless-Oberfläche (zum Nachschlagen am Beleg). */
+  dokumentUrl(dokumentId) {
+    return `${this.basisUrl}/documents/${dokumentId}/details`;
+  }
+}
+
+/**
+ * Rückfallweg ohne Netzzugriff: eine aus Paperless exportierte JSON-Datei lesen.
+ * Akzeptiert sowohl die API-Antwort ({results: [...]}) als auch eine reine Liste.
+ */
+function ausJsonExport(inhalt) {
+  const daten = typeof inhalt === 'string' ? JSON.parse(inhalt) : inhalt;
+  if (Array.isArray(daten)) return daten;
+  if (Array.isArray(daten?.results)) return daten.results;
+  if (Array.isArray(daten?.documents)) return daten.documents;
+  throw new Error('Die Datei enthält keine erkennbare Dokumentliste aus Paperless.');
+}
+
+/**
+ * Liest die Definition der Custom Fields aus derselben Datei mit, falls
+ * vorhanden. Ohne sie bleiben nur die Regeln auf dem OCR-Text.
+ */
+function felddefinitionenAusJson(inhalt) {
+  const daten = typeof inhalt === 'string' ? JSON.parse(inhalt) : inhalt;
+  const kandidat = daten?.custom_fields_definition ?? daten?.custom_fields;
+  return Array.isArray(kandidat) ? kandidat : [];
+}
+
+
+// ---- src/paperless-io.js ---------------------------------------------
+/**
+ * Zugriff auf paperless.io — den Dienst für digitale Vertragsunterzeichnung.
+ *
+ * Nicht zu verwechseln mit paperless-ngx (siehe paperless.js). Hier liegen
+ * die Mandate, die Eltern digital ausfüllen und unterschreiben; ihre
+ * Formularfelder kommen strukturiert zurück, ohne Texterkennung.
+ *
+ * Die Basisadresse https://app.paperless.io/api antwortet auf
+ * /v1/documents mit 403, wenn der Token fehlt — die Adresse existiert also.
+ * Wie die Felder im Einzelnen heißen, entscheidet der Anbieter; deshalb
+ * werden sie nicht geraten, sondern aus der Antwort eingesammelt und in der
+ * Oberfläche zugeordnet.
+ */
+
+const STANDARD_BASIS = 'https://app.paperless.io/api';
+
+class PaperlessIoClient {
+  /**
+   * @param {string} basisUrl z. B. https://app.paperless.io/api
+   * @param {string} token API-Token aus dem Paperless-Konto
+   */
+  constructor(basisUrl = STANDARD_BASIS, token = '', fetchImpl = globalThis.fetch) {
+    this.basisUrl = String(basisUrl ?? '').replace(/\/+$/, '');
+    this.token = String(token ?? '').trim();
+    // fetch verliert als Objekteigenschaft seine Bindung an window und wirft
+    // im Browser sofort "Illegal invocation". Deshalb hier fest binden.
+    this.fetch = fetchImpl === globalThis.fetch ? fetchImpl.bind(globalThis) : fetchImpl;
+  }
+
+  get kopfzeilen() {
+    return { Authorization: `Bearer ${this.token}`, Accept: 'application/json' };
+  }
+
+  async hole(pfad, parameter = {}) {
+    const url = new URL(`${this.basisUrl}${pfad}`);
+    for (const [schluessel, wert] of Object.entries(parameter)) {
+      if (wert !== undefined && wert !== null && wert !== '') url.searchParams.set(schluessel, wert);
+    }
+
+    let antwort;
+    try {
+      antwort = await this.fetch(url.toString(), { headers: this.kopfzeilen });
+    } catch (ursache) {
+      throw new Error(
+        'Verbindung zu paperless.io nicht möglich. Meist blockiert der Browser die ' +
+        'Anfrage, weil paperless.io diese Seite nicht als Aufrufer zulässt (CORS). ' +
+        `Dann hilft der Weg über eine Datei. Technisch: ${ursache.message}`
+      );
+    }
+
+    if (antwort.status === 401 || antwort.status === 403) {
+      throw new Error(
+        `paperless.io nimmt den Token nicht an (${antwort.status}). Die Adresse stimmt, ` +
+        'der Token nicht — oder er ist für diesen Bereich nicht freigeschaltet.'
+      );
+    }
+    if (antwort.status === 404) {
+      throw new Error(`Diese Adresse gibt es bei paperless.io nicht: ${pfad}`);
+    }
+    if (!antwort.ok) throw new Error(`paperless.io antwortet mit ${antwort.status}.`);
+
+    const typ = antwort.headers.get?.('content-type') ?? '';
+    if (typ && !typ.includes('json')) {
+      throw new Error(
+        'Statt Daten kam die Weboberfläche zurück. Die Basisadresse zeigt nicht auf die API.'
+      );
+    }
+    return antwort.json();
+  }
+
+  /** Prüft Adresse und Token mit einem kleinen Aufruf. */
+  async pruefeVerbindung() {
+    const daten = await this.hole('/v1/documents', { limit: 1 });
+    return { erreichbar: true, probe: daten };
+  }
+
+  /**
+   * Holt Dokumente über alle Seiten. Paperless-Dienste geben ihre Liste je
+   * nach Version unter `data`, `documents` oder direkt als Feld zurück.
+   */
+  async holeDokumente(optionen = {}) {
+    const proSeite = optionen.seitenGroesse ?? 100;
+    const alle = [];
+    let seite = 1;
+
+    for (;;) {
+      const daten = await this.hole('/v1/documents', {
+        limit: proSeite,
+        page: seite,
+        ...(optionen.zusatzParameter ?? {})
+      });
+      const stapel = listeAus(daten);
+      alle.push(...stapel);
+      if (optionen.beiFortschritt) optionen.beiFortschritt(alle.length);
+      if (stapel.length < proSeite) break;
+      seite += 1;
+      if (seite > 200) break;
+    }
+    return alle;
+  }
+
+  /** Holt ein einzelnes Dokument samt seiner ausgefüllten Felder. */
+  async holeDokument(id) {
+    return this.hole(`/v1/documents/${encodeURIComponent(id)}`);
+  }
+}
+
+/** Findet die eigentliche Liste in einer Antwort, wie auch immer sie verpackt ist. */
+function listeAus(daten) {
+  if (Array.isArray(daten)) return daten;
+  for (const schluessel of ['data', 'documents', 'results', 'items', 'records']) {
+    if (Array.isArray(daten?.[schluessel])) return daten[schluessel];
+  }
+  return daten && typeof daten === 'object' ? [daten] : [];
+}
+
+/**
+ * Sammelt alle Blattpfade eines Objekts ein, damit die Oberfläche daraus
+ * Auswahllisten bauen kann: "signers.0.fields.iban" und so weiter.
+ * @returns {Array<{pfad: string, beispiel: string}>}
+ */
+function sammleFeldpfade(objekt, praefix = '', tiefe = 0, gesammelt = new Map()) {
+  if (tiefe > 6 || objekt === null || objekt === undefined) return [...gesammelt.values()];
+
+  if (Array.isArray(objekt)) {
+    // Bei Listen genügt der erste Eintrag als Muster.
+    if (objekt.length) sammleFeldpfade(objekt[0], `${praefix}.0`, tiefe + 1, gesammelt);
+    return [...gesammelt.values()];
+  }
+
+  if (typeof objekt === 'object') {
+    for (const [schluessel, wert] of Object.entries(objekt)) {
+      sammleFeldpfade(wert, praefix ? `${praefix}.${schluessel}` : schluessel, tiefe + 1, gesammelt);
+    }
+    return [...gesammelt.values()];
+  }
+
+  const text = String(objekt);
+  if (praefix && text.trim() !== '') {
+    gesammelt.set(praefix, { pfad: praefix, beispiel: text.length > 60 ? `${text.slice(0, 60)}…` : text });
+  }
+  return [...gesammelt.values()];
+}
+
+/** Liest einen Wert über einen Pfad wie "signers.0.fields.iban" aus. */
+function leseUeberPfad(objekt, pfad) {
+  if (!pfad) return '';
+  let aktuell = objekt;
+  for (const teil of String(pfad).split('.')) {
+    if (aktuell === null || aktuell === undefined) return '';
+    aktuell = Array.isArray(aktuell) ? aktuell[Number(teil)] : aktuell[teil];
+  }
+  return aktuell === null || aktuell === undefined ? '' : String(aktuell);
+}
+
+/**
+ * Rät eine Feldzuordnung anhand der Feldnamen vor. Was hier danebenliegt,
+ * wird in der Oberfläche von Hand richtiggestellt.
+ */
+function schlageZuordnungVor(feldpfade) {
+  const regeln = {
+    iban: /iban/i,
+    bic: /bic|swift/i,
+    kontoinhaber: /kontoinhaber|account.?holder|inhaber|payer|zahlungspflicht/i,
+    kind: /kind|child|sch[uü]ler|teilnehmer/i,
+    mandatsId: /mandat.?(referenz|id|nummer)|mandate.?(reference|id)/i,
+    mandatsDatum: /(mandat|signed|signatur|unterschrift).*(datum|date|at)|date.?of.?signature/i,
+    betrag: /betrag|beitrag|amount|monatlich/i
+  };
+  const zuordnung = {};
+  for (const [ziel, muster] of Object.entries(regeln)) {
+    const treffer = feldpfade.find((f) => muster.test(f.pfad));
+    if (treffer) zuordnung[ziel] = treffer.pfad;
+  }
+  return zuordnung;
+}
+
+/** Baut aus einem Dokument und einer Feldzuordnung die Rohwerte eines Mandats. */
+function mandatAusFeldern(dokument, zuordnung) {
+  const lies = (ziel) => leseUeberPfad(dokument, zuordnung[ziel]).trim();
+  return {
+    kontoinhaber: lies('kontoinhaber'),
+    kind: lies('kind'),
+    iban: lies('iban').replace(/\s/g, '').toUpperCase(),
+    bic: lies('bic').replace(/\s/g, '').toUpperCase(),
+    mandatsId: lies('mandatsId'),
+    mandatsDatum: lies('mandatsDatum'),
+    betrag: lies('betrag')
+  };
+}
+
+
+// ---- src/app.js ------------------------------------------------------
+/**
+ * Ablaufsteuerung der Oberfläche.
+ *
+ * Grundsatz: Es gibt keinen Server. Mandatsdaten leben nur in dieser
+ * Variablen, solange die Seite offen ist. Gespeichert werden ausschließlich
+ * die Stammdaten des Vereins — niemals Bankdaten von Eltern und niemals der
+ * Paperless-Token.
+ */
+
+
+
+
+
+
+
+const bwsFormular = { GLAEUBIGER_ID, REFERENZ_SCHEMA, REFERENZ_SCHEMA_ALT, aufSepaFormBringen, teileMandate, bildeMandatsreferenz, leseBwsMandat, leseBwsMandate };
+
+const SPEICHER_SCHLUESSEL = 'bws-sepa-stammdaten';
+const ZUORDNUNG_SCHLUESSEL = 'bws-sepa-feldzuordnung';
+
+/** Die Angaben, die für einen Lastschrifteinzug gebraucht werden. */
+const ZUORDNUNGSZIELE = [
+  ['kontoinhaber', 'Kontoinhaber*in'],
+  ['iban', 'IBAN'],
+  ['bic', 'BIC (freiwillig)'],
+  ['mandatsId', 'Mandatsreferenz'],
+  ['mandatsDatum', 'Mandatsdatum'],
+  ['kind', 'Name des Kindes'],
+  ['betrag', 'Betrag (freiwillig)']
+];
+const $ = (id) => document.getElementById(id);
+
+let client = null;
+let ioClient = null;
+let mandate = [];
+let feldpfade = [];
+let zuordnung = {};
+
+/* ---------- Stammdaten (ohne Personenbezug) ------------------------------ */
+
+const STAMMFELDER = ['paperlessUrl', 'ioUrl', 'agName', 'agIban', 'agBic', 'agGlaeubigerId', 'vwzVorlage'];
+
+function ladeStammdaten() {
+  try {
+    const roh = localStorage.getItem(SPEICHER_SCHLUESSEL);
+    if (!roh) return;
+    const daten = JSON.parse(roh);
+    for (const feld of STAMMFELDER) {
+      if (daten[feld] !== undefined && $(feld)) $(feld).value = daten[feld];
+    }
+    if (daten.tagName) $('tagAuswahl').dataset.gemerkt = daten.tagName;
+  } catch {
+    /* Ein defekter Eintrag darf die Seite nicht blockieren. */
+  }
+}
+
+function speichereStammdaten() {
+  const daten = {};
+  for (const feld of STAMMFELDER) daten[feld] = $(feld)?.value ?? '';
+  const tag = $('tagAuswahl');
+  daten.tagName = tag.options[tag.selectedIndex]?.textContent ?? '';
+  try {
+    localStorage.setItem(SPEICHER_SCHLUESSEL, JSON.stringify(daten));
+  } catch {
+    /* Privates Fenster o. Ä. — kein Grund abzubrechen. */
+  }
+}
+
+/* ---------- kleine Helfer ------------------------------------------------ */
+
+function meldung(behaelter, art, text) {
+  $(behaelter).innerHTML = `<div class="hinweis ${art}">${text}</div>`;
+}
+
+/** Kürzt einen Befundtext für die Tabelle; der volle Text steht im Tooltip. */
+function kurz(text, laenge = 30) {
+  const sauber = String(text ?? '');
+  return sauber.length <= laenge ? sauber : `${sauber.slice(0, laenge - 1).trimEnd()}…`;
+}
+
+function euro(betrag) {
+  return Number(betrag || 0).toLocaleString('de-DE', { style: 'currency', currency: 'EUR' });
+}
+
+/**
+ * Bietet eine Datei zum Herunterladen an — und immer auch zum Kopieren.
+ *
+ * Manche Umgebungen unterbinden Downloads aus einer Seite heraus (etwa eine
+ * online geteilte Vorschau). Dort passiert beim Klick sichtbar nichts.
+ * Deshalb steht der Inhalt zusätzlich zum Markieren bereit.
+ */
+function lade(dateiInhalt, name, typ) {
+  try {
+    const blob = new Blob([dateiInhalt], { type: typ });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+  } catch {
+    /* Der Kopierweg unten bleibt in jedem Fall. */
+  }
+  bieteErsatzweg(dateiInhalt, name);
+}
+
+/** Zeigt den Dateiinhalt zum Markieren und Kopieren. */
+function bieteErsatzweg(inhalt, name) {
+  const feld = $('vorschau');
+  feld.textContent = inhalt;
+  feld.classList.remove('versteckt');
+  $('kopierKnopf').classList.remove('versteckt');
+  $('kopierKnopf').dataset.name = name;
+  $('kopierKnopf').dataset.inhalt = inhalt;
+}
+
+function auftraggeber() {
+  return {
+    name: $('agName').value.trim(),
+    iban: $('agIban').value.trim(),
+    bic: $('agBic').value.trim(),
+    glaeubigerId: $('agGlaeubigerId').value.trim()
+  };
+}
+
+/* ---------- Schritt 1: über den Helfer ---------------------------------- */
+
+/**
+ * Holt die Mandate vom Helfer auf diesem Rechner. Der spricht mit
+ * paperless.io und liest die Werte aus den Dokumenten — beides kann der
+ * Browser von sich aus nicht.
+ */
+async function vomHelferHolen() {
+  const alle = $('helferUmfang').value === 'alle' ? '?alle=1' : '';
+  $('helferKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Der Helfer holt die Mandate aus paperless.io …');
+
+  try {
+    const antwort = await fetch(`/mandate${alle}`);
+    const daten = await antwort.json();
+    if (!antwort.ok) throw new Error(daten.fehler ?? `Der Helfer meldet ${antwort.status}.`);
+
+    const dokumente = daten.results ?? [];
+    if (!dokumente.length) {
+      meldung('ladeMeldung', 'warnung',
+        'Der Helfer hat kein abgeschlossenes Mandat gefunden. Liegt in paperless.io schon ' +
+        'ein ausgefülltes und unterschriebenes Mandat? Sonst oben auf "alle Dokumente" umstellen.');
+      return;
+    }
+
+    mandate = extrahiereMandate(dokumente, { bwsFormular, ioMandat });
+    zeigeMandate();
+    meldung('ladeMeldung', 'gut',
+      `${mandate.length} Mandate aus ${dokumente.length} Dokumenten gelesen.`);
+  } catch (fehler) {
+    const laeuftNicht = /Failed to fetch|NetworkError|load failed/i.test(fehler.message);
+    meldung('ladeMeldung', 'fehler', laeuftNicht
+      ? 'Der Helfer antwortet nicht. Läuft er im Terminal? Zu starten mit ' +
+        '<code>node helfer/paperless-helfer.mjs</code> — und diese Seite dann über ' +
+        '<code>http://localhost:8787</code> öffnen, nicht als Datei.'
+      : fehler.message);
+  } finally {
+    $('helferKnopf').disabled = false;
+  }
+}
+
+/* ---------- Quelle umschalten ------------------------------------------- */
+
+function zeigeQuelle() {
+  const gewaehlt = $('quelle').value;
+  $('quelleHelfer').classList.toggle('versteckt', gewaehlt !== 'helfer');
+  $('quelleIo').classList.toggle('versteckt', gewaehlt !== 'io');
+  $('quelleDatei').classList.toggle('versteckt', gewaehlt !== 'datei');
+  $('quelleNgx').classList.toggle('versteckt', gewaehlt !== 'ngx');
+  if (gewaehlt !== 'io') $('zuordnungKarte').classList.add('versteckt');
+}
+
+/* ---------- Schritt 1: paperless.io ------------------------------------- */
+
+function ladeZuordnung() {
+  try {
+    const roh = localStorage.getItem(ZUORDNUNG_SCHLUESSEL);
+    zuordnung = roh ? JSON.parse(roh) : {};
+  } catch {
+    zuordnung = {};
+  }
+}
+
+function speichereZuordnung() {
+  try {
+    localStorage.setItem(ZUORDNUNG_SCHLUESSEL, JSON.stringify(zuordnung));
+  } catch {
+    /* Privates Fenster — kein Grund abzubrechen. */
+  }
+}
+
+/** Baut die Auswahllisten für die Feldzuordnung. */
+function zeigeZuordnung() {
+  const behaelter = $('zuordnungFelder');
+  behaelter.innerHTML = '';
+
+  for (const [ziel, beschriftung] of ZUORDNUNGSZIELE) {
+    const feld = document.createElement('div');
+    const auswahl = feldpfade.map((f) =>
+      `<option value="${f.pfad}" ${zuordnung[ziel] === f.pfad ? 'selected' : ''}>` +
+      `${f.pfad} — ${f.beispiel}</option>`).join('');
+    feld.innerHTML = `
+      <label for="zu_${ziel}">${beschriftung}</label>
+      <select id="zu_${ziel}" data-ziel="${ziel}">
+        <option value="">— nicht zugeordnet —</option>
+        ${auswahl}
+      </select>`;
+    behaelter.appendChild(feld);
+  }
+
+  behaelter.addEventListener('change', (ereignis) => {
+    const ziel = ereignis.target.dataset.ziel;
+    if (!ziel) return;
+    zuordnung[ziel] = ereignis.target.value;
+    speichereZuordnung();
+  });
+
+  $('zuordnungKarte').classList.remove('versteckt');
+}
+
+async function ioVerbinden() {
+  const url = $('ioUrl').value.trim();
+  const token = $('ioToken').value.trim();
+  if (!url || !token) {
+    meldung('ladeMeldung', 'warnung', 'Adresse und Token werden beide gebraucht.');
+    return;
+  }
+
+  $('ioVerbindenKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Verbindung wird geprüft …');
+  try {
+    ioClient = new PaperlessIoClient(url, token);
+    const { probe } = await ioClient.pruefeVerbindung();
+    const erstes = listeAus(probe)[0];
+    if (!erstes) {
+      meldung('ladeMeldung', 'warnung',
+        'Die Verbindung steht, aber es kam kein Dokument zurück. Liegt in paperless.io ' +
+        'schon ein ausgefülltes Mandat?');
+      return;
+    }
+
+    feldpfade = sammleFeldpfade(erstes);
+    if (!Object.keys(zuordnung).length) zuordnung = schlageZuordnungVor(feldpfade);
+    zeigeZuordnung();
+    $('ioLadenKnopf').disabled = false;
+    meldung('ladeMeldung', 'gut',
+      `Verbunden. Im ersten Dokument stecken ${feldpfade.length} Felder — bitte unten zuordnen.`);
+    speichereStammdaten();
+  } catch (fehler) {
+    ioClient = null;
+    meldung('ladeMeldung', 'fehler', fehler.message);
+  } finally {
+    $('ioVerbindenKnopf').disabled = false;
+  }
+}
+
+async function ioMandateLaden() {
+  if (!ioClient) return;
+  if (!zuordnung.iban) {
+    meldung('ladeMeldung', 'warnung', 'Ohne zugeordnete IBAN geht es nicht.');
+    return;
+  }
+
+  $('ioLadenKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Mandate werden geladen …');
+  try {
+    const dokumente = await ioClient.holeDokumente({
+      beiFortschritt: (anzahl) => meldung('ladeMeldung', 'info', `Mandate werden geladen … ${anzahl}`)
+    });
+    mandate = dokumente
+      .map((d) => mandatAusStrukturiertenFeldern(d, mandatAusFeldern(d, zuordnung)))
+      .sort((a, b) => a.kontoinhaber.localeCompare(b.kontoinhaber, 'de'));
+    zeigeMandate();
+    meldung('ladeMeldung', 'gut', `${mandate.length} Mandate aus paperless.io gelesen.`);
+  } catch (fehler) {
+    meldung('ladeMeldung', 'fehler', fehler.message);
+  } finally {
+    $('ioLadenKnopf').disabled = false;
+  }
+}
+
+/* ---------- Schritt 1: paperless-ngx ------------------------------------ */
+
+async function verbinden() {
+  const url = $('paperlessUrl').value.trim();
+  const token = $('paperlessToken').value.trim();
+  if (!url || !token) {
+    meldung('ladeMeldung', 'warnung', 'Adresse und Token werden beide gebraucht.');
+    return;
+  }
+
+  $('verbindenKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Verbindung wird geprüft …');
+  try {
+    client = new PaperlessClient(url, token);
+    const { dokumenteGesamt } = await client.pruefeVerbindung();
+    const tags = await client.holeTags();
+
+    const auswahl = $('tagAuswahl');
+    auswahl.innerHTML = '<option value="">— Tag wählen —</option>';
+    for (const tag of tags.sort((a, b) => a.name.localeCompare(b.name, 'de'))) {
+      const option = document.createElement('option');
+      option.value = tag.id;
+      option.textContent = tag.name;
+      auswahl.appendChild(option);
+    }
+    // Zuletzt benutzten Tag wieder auswählen, sonst nach "SEPA" oder "Mandat" suchen.
+    const gemerkt = auswahl.dataset.gemerkt;
+    const treffer = [...auswahl.options].find((o) =>
+      (gemerkt && o.textContent === gemerkt) || /sepa|mandat/i.test(o.textContent));
+    if (treffer) auswahl.value = treffer.value;
+
+    $('ladenKnopf').disabled = false;
+    meldung('ladeMeldung', 'gut',
+      `Verbunden. Paperless kennt ${dokumenteGesamt} Dokumente und ${tags.length} Tags.`);
+    speichereStammdaten();
+  } catch (fehler) {
+    client = null;
+    meldung('ladeMeldung', 'fehler', fehler.message);
+  } finally {
+    $('verbindenKnopf').disabled = false;
+  }
+}
+
+async function mandateLaden() {
+  const tagId = $('tagAuswahl').value;
+  if (!client) return;
+  if (!tagId) {
+    meldung('ladeMeldung', 'warnung', 'Bitte zuerst den Tag auswählen, der die Mandate kennzeichnet.');
+    return;
+  }
+
+  $('ladenKnopf').disabled = true;
+  meldung('ladeMeldung', 'info', 'Dokumente werden geladen …');
+  try {
+    const felder = await client.holeCustomFields();
+    const dokumente = await client.holeDokumente({
+      tagId,
+      beiFortschritt: (geladen, gesamt) =>
+        meldung('ladeMeldung', 'info', `Dokumente werden geladen … ${geladen} von ${gesamt}`)
+    });
+    mandate = extrahiereMandate(dokumente, { feldIndex: baueFeldIndex(felder) });
+    zeigeMandate();
+    speichereStammdaten();
+  } catch (fehler) {
+    meldung('ladeMeldung', 'fehler', fehler.message);
+  } finally {
+    $('ladenKnopf').disabled = false;
+  }
+}
+
+function jsonGeladen(ereignis) {
+  const datei = ereignis.target.files?.[0];
+  if (!datei) return;
+  const leser = new FileReader();
+  leser.onload = () => {
+    try {
+      const roh = String(leser.result);
+      const dokumente = ausJsonExport(roh);
+      const feldIndex = baueFeldIndex(felddefinitionenAusJson(roh));
+      mandate = extrahiereMandate(dokumente, { feldIndex, bwsFormular, ioMandat });
+      zeigeMandate();
+      meldung('ladeMeldung', 'gut', `${mandate.length} Dokumente aus der Datei gelesen.`);
+    } catch (fehler) {
+      meldung('ladeMeldung', 'fehler', fehler.message);
+    }
+  };
+  leser.readAsText(datei);
+}
+
+/* ---------- Schritt 3: Tabelle ------------------------------------------ */
+
+function zeigeMandate() {
+  const koerper = $('tabellenkoerper');
+  koerper.innerHTML = '';
+
+  mandate.forEach((mandat, index) => {
+    const zeile = document.createElement('tr');
+    if (!mandat.uebernehmen) zeile.className = 'nichtuebernehmen';
+
+    const marke = (art, text) =>
+      `<span class="marke ${art}" title="${text.replace(/"/g, '')}">${kurz(text)}</span>`;
+    const marken = [
+      ...mandat.fehler.map((f) => marke('fehler', f)),
+      ...mandat.hinweise.map((h) => marke('pruefen', h))
+    ];
+    const befund = marken.length ? marken.join(' ') : '<span class="marke gut">vollständig</span>';
+    const herkunft = mandat.quelle.iban === 'feld'
+      ? '<span class="marke feld">Feld</span>' : '';
+
+    zeile.innerHTML = `
+      <td><input type="checkbox" data-rolle="auswahl" data-index="${index}" ${mandat.uebernehmen ? 'checked' : ''}></td>
+      <td>${befund}</td>
+      <td>${mandat.kontoinhaber || '<em>fehlt</em>'}</td>
+      <td>${mandat.kind || ''}</td>
+      <td class="mono">${mandat.iban || '<em>fehlt</em>'} ${herkunft}</td>
+      <td class="mono">${mandat.bic || ''}</td>
+      <td class="mono">${mandat.mandatsId || '<em>fehlt</em>'}</td>
+      <td class="mono">${zuDeutschemDatum(mandat.mandatsDatum) || '<em>fehlt</em>'}</td>
+      <td><input type="number" step="0.01" min="0" data-rolle="betrag" data-index="${index}"
+                 value="${mandat.betrag ?? ''}"></td>
+      <td><select data-rolle="sequenz" data-index="${index}">
+            ${['RCUR', 'FRST', 'OOFF', 'FNAL'].map((s) =>
+              `<option ${mandat.sequenz === s ? 'selected' : ''}>${s}</option>`).join('')}
+          </select></td>
+      <td><input type="text" data-rolle="vwz" data-index="${index}" value="${mandat.verwendungszweck ?? ''}"></td>`;
+    koerper.appendChild(zeile);
+  });
+
+  $('laufKarte').classList.remove('versteckt');
+  $('tabellenKarte').classList.remove('versteckt');
+  $('ausgabeKarte').classList.remove('versteckt');
+  aktualisiereZahlen();
+}
+
+function ausgewaehlteIndizes() {
+  return [...document.querySelectorAll('[data-rolle="auswahl"]')]
+    .filter((k) => k.checked)
+    .map((k) => Number(k.dataset.index));
+}
+
+function aktualisiereZahlen() {
+  const gewaehlt = ausgewaehlteIndizes();
+  const summe = gewaehlt.reduce((s, i) => s + (Number(mandate[i].betrag) || 0), 0);
+  $('zahlGesamt').textContent = mandate.length;
+  $('zahlAusgewaehlt').textContent = gewaehlt.length;
+  $('zahlSumme').textContent = euro(summe);
+  $('zahlProblem').textContent = mandate.filter((m) => m.fehler.length).length;
+  $('zahlPruefen').textContent = mandate.filter((m) => !m.fehler.length && m.hinweise.length).length;
+}
+
+/** Trägt Betrag, Sequenz und Verwendungszweck aus Schritt 2 in die Auswahl ein. */
+function laufUebernehmen() {
+  const betrag = Number.parseFloat($('standardBetrag').value);
+  const sequenz = $('standardSequenz').value;
+  const termin = $('termin').value;
+  const vorlage = $('vwzVorlage').value;
+  const gewaehlt = ausgewaehlteIndizes();
+
+  if (!gewaehlt.length) {
+    meldung('ausgabeMeldung', 'warnung', 'Es ist keine Zeile ausgewählt.');
+    return;
+  }
+
+  for (const index of gewaehlt) {
+    const mandat = mandate[index];
+    if (Number.isFinite(betrag) && betrag > 0) mandat.betrag = betrag;
+    mandat.sequenz = sequenz;
+    mandat.verwendungszweck = fuelleVorlage(vorlage, mandat, termin);
+  }
+  zeigeMandate();
+  for (const index of gewaehlt) {
+    const kaestchen = document.querySelector(`[data-rolle="auswahl"][data-index="${index}"]`);
+    if (kaestchen) kaestchen.checked = true;
+  }
+  aktualisiereZahlen();
+  meldung('ausgabeMeldung', 'gut', `${gewaehlt.length} Zeilen übernommen.`);
+}
+
+/* ---------- Schritt 4: Ausgabe ------------------------------------------ */
+
+function sammlePosten() {
+  const termin = $('termin').value;
+  const zahlart = $('zahlart').value;
+  return ausgewaehlteIndizes().map((index) => {
+    const mandat = mandate[index];
+    return {
+      name: mandat.kontoinhaber,
+      iban: mandat.iban,
+      bic: mandat.bic,
+      betrag: mandat.betrag,
+      termin,
+      zahlart,
+      verwendungszweck: mandat.verwendungszweck || fuelleVorlage($('vwzVorlage').value, mandat, termin),
+      mandatsId: mandat.mandatsId,
+      mandatsDatum: mandat.mandatsDatum,
+      sequenz: mandat.sequenz,
+      refId: mandat.mandatsId
+    };
+  });
+}
+
+function fehlerAnzeigen(ergebnis, art) {
+  if (!ergebnis.fehler.length) {
+    meldung('ausgabeMeldung', 'gut',
+      `${art} erzeugt: ${ergebnis.anzahl} Lastschriften über ${euro(ergebnis.summe)}.`);
+    return;
+  }
+  const liste = ergebnis.fehler
+    .map((f) => `<li><strong>${f.name}</strong>: ${f.fehler.join('; ')}</li>`).join('');
+  meldung('ausgabeMeldung', ergebnis.anzahl ? 'warnung' : 'fehler',
+    `${art}: ${ergebnis.anzahl} Lastschriften über ${euro(ergebnis.summe)} übernommen. ` +
+    `<strong>${ergebnis.fehler.length} Zeilen wurden ausgelassen:</strong><ul>${liste}</ul>`);
+}
+
+function csvErzeugen(nurVorschau = false) {
+  const posten = sammlePosten();
+  if (!posten.length) {
+    meldung('ausgabeMeldung', 'warnung', 'Es ist keine Zeile ausgewählt.');
+    return null;
+  }
+  const ergebnis = baueWindataCsv(auftraggeber(), posten, { version: $('csvVersion').value });
+  fehlerAnzeigen(ergebnis, 'windata-CSV');
+  if (ergebnis.anzahl && !nurVorschau) {
+    lade(ergebnis.csv, dateiname($('termin').value, 'Elternbeitrag'), 'text/csv;charset=utf-8');
+    speichereStammdaten();
+  }
+  return ergebnis;
+}
+
+function xmlErzeugen() {
+  const posten = sammlePosten();
+  if (!posten.length) {
+    meldung('ausgabeMeldung', 'warnung', 'Es ist keine Zeile ausgewählt.');
+    return;
+  }
+  const ergebnis = baueSepaXml(auftraggeber(), posten);
+  fehlerAnzeigen(ergebnis, 'SEPA-XML');
+  if (ergebnis.anzahl) {
+    const name = dateiname($('termin').value, 'Elternbeitrag').replace(/\.csv$/, '.xml');
+    lade(ergebnis.xml, name, 'application/xml;charset=utf-8');
+    speichereStammdaten();
+  }
+}
+
+function vorschau() {
+  const ergebnis = csvErzeugen(true);
+  if (!ergebnis) return;
+  const feld = $('vorschau');
+  feld.textContent = ergebnis.csv.split('\r\n').slice(0, 12).join('\n');
+  feld.classList.remove('versteckt');
+}
+
+/* ---------- Verdrahtung -------------------------------------------------- */
+
+document.addEventListener('DOMContentLoaded', () => {
+  ladeStammdaten();
+  // Die Gläubiger-Identifikationsnummer steht auf jedem Mandat der
+  // BildungsWerkstatt; sie wird vorbelegt, bleibt aber änderbar.
+  if (!$('agGlaeubigerId').value) $('agGlaeubigerId').value = bwsFormular.GLAEUBIGER_ID;
+  const heute = new Date();
+  $('termin').value = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() + 7)
+    .toISOString().slice(0, 10);
+
+  ladeZuordnung();
+  zeigeQuelle();
+  $('quelle').addEventListener('change', zeigeQuelle);
+  $('helferKnopf').addEventListener('click', vomHelferHolen);
+  $('ioVerbindenKnopf').addEventListener('click', ioVerbinden);
+  $('ioLadenKnopf').addEventListener('click', ioMandateLaden);
+  $('zuordnungZuruecksetzen').addEventListener('click', () => {
+    zuordnung = schlageZuordnungVor(feldpfade);
+    speichereZuordnung();
+    zeigeZuordnung();
+    meldung('ladeMeldung', 'gut', 'Die Zuordnung wurde auf den Vorschlag zurückgesetzt.');
+  });
+  $('verbindenKnopf').addEventListener('click', verbinden);
+  $('ladenKnopf').addEventListener('click', mandateLaden);
+  $('jsonDatei').addEventListener('change', jsonGeladen);
+  $('uebernehmenKnopf').addEventListener('click', laufUebernehmen);
+  $('csvKnopf').addEventListener('click', () => csvErzeugen(false));
+  $('xmlKnopf').addEventListener('click', xmlErzeugen);
+  $('vorschauKnopf').addEventListener('click', vorschau);
+  $('kopierKnopf').addEventListener('click', async () => {
+    const inhalt = $('kopierKnopf').dataset.inhalt ?? '';
+    try {
+      await navigator.clipboard.writeText(inhalt);
+      meldung('ausgabeMeldung', 'gut',
+        `Der Inhalt liegt in der Zwischenablage. In einen Texteditor einfügen und als ` +
+        `<code>${$('kopierKnopf').dataset.name}</code> speichern.`);
+    } catch {
+      meldung('ausgabeMeldung', 'info',
+        'Das Kopieren über den Knopf ist hier gesperrt — den Text unten markieren und mit ' +
+        'Strg+C (Mac: Cmd+C) kopieren.');
+    }
+  });
+
+  $('alleWaehlen').addEventListener('click', () => {
+    document.querySelectorAll('[data-rolle="auswahl"]').forEach((k) => { k.checked = true; });
+    aktualisiereZahlen();
+  });
+  $('keineWaehlen').addEventListener('click', () => {
+    document.querySelectorAll('[data-rolle="auswahl"]').forEach((k) => { k.checked = false; });
+    aktualisiereZahlen();
+  });
+  $('nurEinziehbare').addEventListener('click', () => {
+    document.querySelectorAll('[data-rolle="auswahl"]').forEach((k) => {
+      k.checked = mandate[Number(k.dataset.index)].uebernehmen;
+    });
+    aktualisiereZahlen();
+  });
+  $('nurGepruefte').addEventListener('click', () => {
+    document.querySelectorAll('[data-rolle="auswahl"]').forEach((k) => {
+      k.checked = mandate[Number(k.dataset.index)].einwandfrei;
+    });
+    aktualisiereZahlen();
+  });
+
+  $('stammdatenLoeschen').addEventListener('click', () => {
+    localStorage.removeItem(SPEICHER_SCHLUESSEL);
+    meldung('ausgabeMeldung', 'gut', 'Die gespeicherten Vereinsangaben wurden gelöscht.');
+  });
+
+  for (const feld of ['agName', 'agIban', 'agBic', 'agGlaeubigerId', 'vwzVorlage']) {
+    $(feld).addEventListener('change', speichereStammdaten);
+  }
+
+  // Änderungen in der Tabelle direkt in die Daten zurückschreiben.
+  $('tabellenkoerper').addEventListener('input', (ereignis) => {
+    const ziel = ereignis.target;
+    const index = Number(ziel.dataset.index);
+    if (Number.isNaN(index)) return;
+    if (ziel.dataset.rolle === 'betrag') mandate[index].betrag = Number.parseFloat(ziel.value);
+    if (ziel.dataset.rolle === 'sequenz') mandate[index].sequenz = ziel.value;
+    if (ziel.dataset.rolle === 'vwz') mandate[index].verwendungszweck = ziel.value;
+    aktualisiereZahlen();
+  });
+  $('tabellenkoerper').addEventListener('change', aktualisiereZahlen);
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,115 @@
+/* BildungsWerkstatt e.V. — Farben, Typografie und Bausteine für dieses Werkzeug.
+   Übernommen aus dem BWS-Designsystem (Blau #0069B4, Grün #76B82A auf Weiß).
+
+   Bewusst ohne Webfonts von Google: die Seite verarbeitet Bankdaten und soll
+   dabei keine einzige Verbindung nach außen aufbauen. Sie läuft deshalb auch
+   vollständig offline. Systemschriften kommen dem BWS-Schriftbild nahe genug. */
+
+:root {
+  --blue-50:#e8f2fa; --blue-100:#c9e1f3; --blue-200:#95c4e6; --blue-500:#0069b4;
+  --blue-600:#005a9c; --blue-700:#004a80;
+  --green-50:#f1f8e6; --green-100:#e0f0c8; --green-500:#76b82a; --green-600:#639d20; --green-700:#4f7d1c;
+  --sun-500:#f0b21f; --sun-soft:#fdf2cf;
+  --danger:#d6453f; --danger-soft:#fbe4e3;
+  --ink-900:#1b2530; --ink-700:#3a4651; --ink-500:#6c7884; --ink-400:#97a2ad;
+  --ink-300:#c2c9d0; --ink-200:#dde2e7; --ink-100:#ecf0f3; --ink-50:#f5f7f9; --white:#fff;
+  --radius:14px; --radius-pill:999px;
+  --schatten:0 1px 2px rgba(27,37,48,.06), 0 8px 24px rgba(27,37,48,.08);
+  --font:"Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono:ui-monospace, "SF Mono", "Cascadia Mono", Consolas, Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin:0; font-family:var(--font); color:var(--ink-900);
+  background:var(--ink-50); line-height:1.55; font-size:15px;
+}
+h1,h2,h3 { line-height:1.25; margin:0 0 .4em; font-weight:700; }
+h1 { font-size:1.6rem; } h2 { font-size:1.15rem; } h3 { font-size:1rem; }
+p { margin:0 0 .8em; }
+a { color:var(--blue-600); }
+code, .mono { font-family:var(--font-mono); font-size:.86em; }
+
+.kopf {
+  background:var(--white); border-bottom:3px solid var(--blue-500);
+  padding:14px 24px; display:flex; align-items:center; gap:16px; flex-wrap:wrap;
+}
+.kopf img { height:44px; }
+.kopf .titel { font-weight:700; font-size:1.05rem; }
+.kopf .unterzeile { color:var(--ink-500); font-size:.85rem; }
+.kopf .abstand { margin-left:auto; }
+
+main { max-width:1180px; margin:0 auto; padding:22px 24px 80px; }
+
+.karte {
+  background:var(--white); border:1px solid var(--ink-200); border-radius:var(--radius);
+  padding:20px 22px; margin-bottom:18px; box-shadow:var(--schatten);
+}
+.karte > h2 { display:flex; align-items:center; gap:10px; }
+.schritt {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:26px; height:26px; border-radius:var(--radius-pill); flex:0 0 auto;
+  background:var(--blue-500); color:var(--white); font-size:.85rem; font-weight:700;
+}
+.hilfe { color:var(--ink-500); font-size:.87rem; }
+
+.raster { display:grid; gap:14px; grid-template-columns:repeat(auto-fit, minmax(230px, 1fr)); }
+label { display:block; font-weight:600; font-size:.86rem; margin-bottom:4px; color:var(--ink-700); }
+input[type=text], input[type=password], input[type=number], input[type=date], select, textarea {
+  width:100%; padding:9px 11px; border:1px solid var(--ink-300); border-radius:10px;
+  font-family:var(--font); font-size:.92rem; background:var(--white); color:var(--ink-900);
+}
+input:focus, select:focus, textarea:focus { outline:2px solid var(--blue-200); border-color:var(--blue-500); }
+input[readonly] { background:var(--ink-50); }
+
+.knopf {
+  display:inline-flex; align-items:center; gap:8px; border:0; cursor:pointer;
+  padding:10px 20px; border-radius:var(--radius-pill); font-family:var(--font);
+  font-weight:600; font-size:.92rem; background:var(--blue-500); color:var(--white);
+}
+.knopf:hover { background:var(--blue-600); }
+.knopf:disabled { background:var(--ink-300); cursor:not-allowed; }
+.knopf.gruen { background:var(--green-500); }
+.knopf.gruen:hover { background:var(--green-600); }
+.knopf.leer { background:transparent; color:var(--blue-600); border:1.5px solid var(--blue-200); }
+.knopf.leer:hover { background:var(--blue-50); }
+.knopfreihe { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+
+.hinweis { border-radius:10px; padding:11px 14px; font-size:.88rem; margin:12px 0; border:1px solid; }
+.hinweis.info { background:var(--blue-50); border-color:var(--blue-100); }
+.hinweis.gut { background:var(--green-50); border-color:var(--green-100); }
+.hinweis.warnung { background:var(--sun-soft); border-color:#f6dfa0; }
+.hinweis.fehler { background:var(--danger-soft); border-color:#f3c4c2; }
+
+table { width:100%; min-width:980px; border-collapse:collapse; font-size:.87rem; }
+th, td { text-align:left; padding:7px 9px; border-bottom:1px solid var(--ink-100); vertical-align:middle; }
+th { background:var(--ink-50); font-weight:600; color:var(--ink-700); position:sticky; top:0; z-index:1; }
+tbody tr:hover { background:var(--blue-50); }
+tr.nichtuebernehmen { background:var(--danger-soft); }
+tr.nichtuebernehmen:hover { background:#f7d6d4; }
+.tabellenrahmen { max-height:60vh; overflow:auto; border:1px solid var(--ink-200); border-radius:10px; }
+td input, td select { padding:5px 7px; font-size:.85rem; border-radius:7px; }
+
+.marke {
+  display:inline-block; padding:2px 9px; border-radius:var(--radius-pill);
+  font-size:.74rem; font-weight:600; white-space:nowrap; cursor:help;
+  max-width:100%; overflow:hidden; text-overflow:ellipsis; vertical-align:middle;
+}
+/* Mehrere Befunde stehen untereinander, damit die Spalte schmal bleibt. */
+td .marke + .marke { margin-top:3px; }
+td .marke { display:block; width:fit-content; }
+.marke.gut { background:var(--green-100); color:var(--green-700); }
+.marke.pruefen { background:var(--sun-soft); color:#8a6410; }
+.marke.fehler { background:var(--danger-soft); color:var(--danger); }
+.marke.feld { background:var(--blue-50); color:var(--blue-700); }
+
+.zahlenreihe { display:flex; gap:26px; flex-wrap:wrap; margin:10px 0 4px; }
+.zahl { font-size:1.5rem; font-weight:700; color:var(--blue-600); }
+.zahl.gruen { color:var(--green-600); }
+.zahl-etikett { font-size:.78rem; color:var(--ink-500); text-transform:uppercase; letter-spacing:.04em; }
+
+.fusszeile {
+  border-top:1px solid var(--ink-200); margin-top:8px; padding:18px 24px;
+  font-size:.75rem; color:var(--ink-500); background:var(--white);
+}
+.versteckt { display:none !important; }

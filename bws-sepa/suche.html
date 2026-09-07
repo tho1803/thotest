@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dokumente durchsuchen</title>
+<link rel="stylesheet" href="assets/bws.css">
+</head>
+<body>
+
+<header class="kopf">
+  <img src="assets/logo/bws-logo.png" alt="BildungsWerkstatt e.V.">
+  <div>
+    <div class="titel">Dokumente durchsuchen</div>
+    <div class="unterzeile">Volltext über alle Inhalte — nicht nur über Dateinamen</div>
+  </div>
+  <div class="abstand"><a href="index.html">← zu den Lastschriften</a></div>
+</header>
+
+<main>
+  <section class="karte">
+    <h2><span class="schritt">1</span> Bestand einlesen</h2>
+    <p class="hilfe">
+      Der Helfer holt alle Dokumente, liest ihre Texte und legt daraus ein Verzeichnis an.
+      Das dauert beim ersten Mal etwas und muss nur wiederholt werden, wenn neue Dokumente
+      hinzugekommen sind. Das Verzeichnis bleibt auf diesem Rechner.
+    </p>
+    <div class="knopfreihe">
+      <button class="knopf" id="einlesenKnopf">Bestand einlesen</button>
+      <span class="hilfe" id="bestandInfo"></span>
+    </div>
+    <div id="meldung"></div>
+  </section>
+
+  <section class="karte">
+    <h2><span class="schritt">2</span> Suchen</h2>
+    <div class="raster">
+      <div style="grid-column:1 / -1">
+        <label for="frage">Suchbegriff</label>
+        <input type="text" id="frage" placeholder="z. B. Kreditbank, eine IBAN, ein Nachname" autocomplete="off">
+        <p class="hilfe" style="margin-top:5px">
+          Mehrere Begriffe müssen alle vorkommen. Was in <code>"Anführungszeichen"</code> steht,
+          wird als zusammenhängende Wendung gesucht.
+        </p>
+      </div>
+      <div>
+        <label for="zustand">Zustand</label>
+        <select id="zustand"><option value="">alle</option></select>
+      </div>
+      <div>
+        <label for="vorlage">Vorlage</label>
+        <select id="vorlage"><option value="">alle</option></select>
+      </div>
+      <div>
+        <label for="von">erstellt ab</label>
+        <input type="date" id="von">
+      </div>
+      <div>
+        <label for="bis">erstellt bis</label>
+        <input type="date" id="bis">
+      </div>
+    </div>
+    <div class="knopfreihe">
+      <button class="knopf gruen" id="suchKnopf">Suchen</button>
+      <button class="knopf leer" id="allesKnopf">Alle anzeigen</button>
+    </div>
+  </section>
+
+  <section class="karte versteckt" id="trefferKarte">
+    <h2><span class="schritt">3</span> Treffer</h2>
+    <div class="zahlenreihe">
+      <div><div class="zahl" id="zahlTreffer">0</div><div class="zahl-etikett">Dokumente</div></div>
+      <div><div class="zahl gruen" id="zahlStellen">0</div><div class="zahl-etikett">Fundstellen</div></div>
+    </div>
+    <div id="treffer"></div>
+  </section>
+</main>
+
+<footer class="fusszeile">
+  <strong>BildungsWerkstatt e.V.</strong> &nbsp;|&nbsp;
+  Das Verzeichnis enthält die Dokumenttexte im Klartext und bleibt auf diesem Rechner.
+</footer>
+
+<script type="module" src="src/suche.js"></script>
+</body>
+</html>

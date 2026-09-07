@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zugang zu paperless.io prüfen</title>
+<link rel="stylesheet" href="assets/bws.css">
+</head>
+<body>
+
+<header class="kopf">
+  <img src="assets/logo/bws-logo.png" alt="BildungsWerkstatt e.V.">
+  <div>
+    <div class="titel">Zugang zu paperless.io prüfen</div>
+    <div class="unterzeile">Was kann dieser Token — und was nicht?</div>
+  </div>
+  <div class="abstand"><a href="index.html">← zurück zu den Lastschriften</a></div>
+</header>
+
+<main>
+  <section class="karte">
+    <h2><span class="schritt">1</span> Token eintragen</h2>
+    <p class="hilfe">
+      Diese Seite fragt paperless.io eine Reihe von Adressen ab und zeigt, welche
+      antworten. <strong>Es wird ausschließlich gelesen</strong> — im Konto wird nichts
+      verändert, nichts angelegt, nichts gelöscht. Der Token wird nicht gespeichert.
+    </p>
+    <div class="raster">
+      <div>
+        <label for="basis">Basisadresse</label>
+        <input type="text" id="basis" value="https://app.paperless.io/api">
+      </div>
+      <div>
+        <label for="token">API-Token</label>
+        <input type="password" id="token" placeholder="aus den Kontoeinstellungen" autocomplete="off">
+      </div>
+    </div>
+    <div class="knopfreihe">
+      <button class="knopf gruen" id="pruefenKnopf">Zugang prüfen</button>
+      <button class="knopf leer" id="berichtKnopf" disabled>Bericht kopieren</button>
+    </div>
+    <div id="meldung"></div>
+  </section>
+
+  <section class="karte versteckt" id="ergebnisKarte">
+    <h2><span class="schritt">2</span> Was der Zugang erreicht</h2>
+    <div class="zahlenreihe">
+      <div><div class="zahl gruen" id="zahlOffen">0</div><div class="zahl-etikett">erreichbar</div></div>
+      <div><div class="zahl" id="zahlGesperrt" style="color:var(--sun-500)">0</div><div class="zahl-etikett">gesperrt</div></div>
+      <div><div class="zahl" id="zahlWeg" style="color:var(--ink-400)">0</div><div class="zahl-etikett">gibt es nicht</div></div>
+    </div>
+    <div class="tabellenrahmen">
+      <table>
+        <thead><tr><th style="width:230px">Adresse</th><th style="width:150px">Antwort</th><th>Was das heißt</th><th>Felder</th></tr></thead>
+        <tbody id="ergebnisse"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="karte versteckt" id="deutungKarte">
+    <h2><span class="schritt">3</span> Und jetzt?</h2>
+    <div id="deutung"></div>
+  </section>
+</main>
+
+<footer class="fusszeile">
+  <strong>BildungsWerkstatt e.V.</strong> · Paul-Wassermann-Str. 15 · 81829 München &nbsp;|&nbsp;
+  Diese Seite stellt ausschließlich lesende Anfragen. Der Token verlässt diesen Browser nur
+  in Richtung paperless.io.
+</footer>
+
+<script type="module" src="src/api-pruefen.js"></script>
+</body>
+</html>
