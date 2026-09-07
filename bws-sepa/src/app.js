@@ -12,6 +12,7 @@ import { extrahiereMandate, baueFeldIndex, zuDeutschemDatum } from './mandate.js
 import { baueWindataCsv, dateiname } from './windata.js';
 import { baueSepaXml } from './sepa-xml.js';
 import { fuelleVorlage } from './vorlage.js';
+import * as bwsFormular from './bws-formular.js';
 
 const SPEICHER_SCHLUESSEL = 'bws-sepa-stammdaten';
 const $ = (id) => document.getElementById(id);
@@ -165,7 +166,7 @@ function jsonGeladen(ereignis) {
       const roh = String(leser.result);
       const dokumente = ausJsonExport(roh);
       const feldIndex = baueFeldIndex(felddefinitionenAusJson(roh));
-      mandate = extrahiereMandate(dokumente, { feldIndex });
+      mandate = extrahiereMandate(dokumente, { feldIndex, bwsFormular });
       zeigeMandate();
       meldung('ladeMeldung', 'gut', `${mandate.length} Dokumente aus der Datei gelesen.`);
     } catch (fehler) {
@@ -342,6 +343,9 @@ function vorschau() {
 
 document.addEventListener('DOMContentLoaded', () => {
   ladeStammdaten();
+  // Die Gläubiger-Identifikationsnummer steht auf jedem Mandat der
+  // BildungsWerkstatt; sie wird vorbelegt, bleibt aber änderbar.
+  if (!$('agGlaeubigerId').value) $('agGlaeubigerId').value = bwsFormular.GLAEUBIGER_ID;
   const heute = new Date();
   $('termin').value = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() + 7)
     .toISOString().slice(0, 10);

@@ -208,9 +208,78 @@ export function extrahiereMandat(dokument, optionen = {}) {
   };
 }
 
+/** Erkennt am Text, ob ein Dokument das SEPA-Formular der BildungsWerkstatt ist. */
+export function istBwsFormular(text) {
+  return /SEPA\s*-?\s*Lastschriftmandat/i.test(String(text ?? ''))
+    && /BildungsWerkstatt|Gl[äa]ubiger\s*-?\s*Identifikationsnummer/i.test(String(text ?? ''));
+}
+
+/**
+ * Wandelt ein Dokument in eine Liste von Mandaten.
+ *
+ * Ein eingescanntes Dokument enthält oft mehrere Mandate hintereinander.
+ * Sind Custom Fields gepflegt, gilt der einfache Weg (ein Dokument, ein
+ * Mandat); sonst greifen die Formularregeln, die den Scan zerlegen.
+ */
+export function extrahiereMandateAusDokument(dokument, optionen = {}) {
+  const hatFelder = (dokument.custom_fields ?? []).length > 0;
+  const text = dokument.content ?? '';
+
+  if (hatFelder || !optionen.bwsFormular || !istBwsFormular(text)) {
+    return [extrahiereMandat(dokument, optionen)];
+  }
+
+  const abschnitte = optionen.bwsFormular.leseBwsMandate(text);
+  return abschnitte.map((roh, i) => {
+    const teilDokument = {
+      ...dokument,
+      id: dokument.id,
+      title: abschnitte.length > 1
+        ? `${dokument.title ?? ''} (Mandat ${i + 1} von ${abschnitte.length})`
+        : dokument.title,
+      content: ''
+    };
+    const mandat = extrahiereMandat(teilDokument, optionen);
+    return vereineMitFormular(mandat, roh);
+  });
+}
+
+/** Übernimmt die Werte der Formularerkennung in ein Mandat. */
+function vereineMitFormular(mandat, roh) {
+  const ibanPruefung = pruefeIban(roh.iban);
+  const fehler = [];
+  const hinweise = [...roh.hinweise];
+
+  if (!ibanPruefung.gueltig) fehler.push(ibanPruefung.fehler);
+  if (!roh.kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
+  if (!roh.mandatsId) fehler.push('Mandatsreferenz fehlt');
+  if (!roh.mandatsDatum) fehler.push('Mandatsdatum fehlt');
+  if (roh.iban && !roh.ibanSicher) {
+    hinweise.push(`IBAN im Beleg: ${roh.ibanRoh}`);
+  }
+
+  return {
+    ...mandat,
+    kontoinhaber: roh.kontoinhaber || mandat.kontoinhaber,
+    kind: roh.kind || mandat.kind,
+    iban: ibanPruefung.gueltig ? ibanPruefung.iban : roh.iban,
+    bic: roh.bic || mandat.bic,
+    mandatsId: roh.mandatsId || mandat.mandatsId,
+    mandatsDatum: roh.mandatsDatum || mandat.mandatsDatum,
+    glaeubigerIdBeleg: roh.glaeubigerId,
+    ibanRoh: roh.ibanRoh,
+    quelle: { ...mandat.quelle, iban: roh.ibanSicher ? 'text' : 'text-unsicher' },
+    fehler,
+    hinweise,
+    warnungen: [...fehler, ...hinweise],
+    uebernehmen: fehler.length === 0,
+    einwandfrei: fehler.length === 0 && hinweise.length === 0
+  };
+}
+
 /** Wandelt eine Liste Paperless-Dokumente um und sortiert nach Kontoinhaber. */
 export function extrahiereMandate(dokumente, optionen = {}) {
   return dokumente
-    .map((d) => extrahiereMandat(d, optionen))
+    .flatMap((d) => extrahiereMandateAusDokument(d, optionen))
     .sort((a, b) => a.kontoinhaber.localeCompare(b.kontoinhaber, 'de'));
 }
