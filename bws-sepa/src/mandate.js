@@ -290,6 +290,13 @@ export function extrahiereMandateAusDokument(dokument, optionen = {}) {
   const hatFelder = (dokument.custom_fields ?? []).length > 0;
   const text = dokument.content ?? '';
 
+  // Mandate aus paperless.io haben ein festes Layout und digitalen Text —
+  // sie werden mit eigenen Regeln gelesen, ohne Rekonstruktionsversuche.
+  if (!hatFelder && optionen.ioMandat?.istIoMandat(text)) {
+    const roh = optionen.ioMandat.leseIoMandat(text);
+    return [vereineMitIoMandat(extrahiereMandat({ ...dokument, content: '' }, optionen), roh, dokument)];
+  }
+
   if (hatFelder || !optionen.bwsFormular || !istBwsFormular(text)) {
     return [extrahiereMandat(dokument, optionen)];
   }
@@ -307,6 +314,51 @@ export function extrahiereMandateAusDokument(dokument, optionen = {}) {
     const mandat = extrahiereMandat(teilDokument, optionen);
     return vereineMitFormular(mandat, roh);
   });
+}
+
+/**
+ * Übernimmt die Werte eines paperless.io-Mandats.
+ *
+ * Der Text ist digital erzeugt, deshalb gilt hier: Was fehlt, fehlt
+ * tatsächlich — es ist ein Fehler, kein Lesehinweis.
+ */
+function vereineMitIoMandat(mandat, roh, dokument) {
+  const fehler = [];
+  const hinweise = [...roh.hinweise];
+
+  const ibanPruefung = pruefeIban(roh.iban);
+  if (!ibanPruefung.gueltig) {
+    fehler.push(roh.iban ? ibanPruefung.fehler : 'IBAN im Mandat nicht ausgefüllt');
+  }
+  if (!roh.kontoinhaber) fehler.push('Kontoinhaber*in fehlt');
+
+  const mandatsId = String(roh.mandatsId ?? '').replace(/_/g, '-');
+  if (!mandatsId) fehler.push('Mandatsreferenz fehlt');
+  else if (mandatsId !== roh.mandatsId) {
+    hinweise.push(`Unterstrich in der Mandatsreferenz durch Bindestrich ersetzt: ${mandatsId}`);
+  }
+  if (!roh.mandatsDatum) fehler.push('Mandatsdatum fehlt');
+
+  if (roh.kreditinstitut) hinweise.push(`Kreditinstitut laut Mandat: ${roh.kreditinstitut}`);
+  if (roh.glaeubigerId) hinweise.push(`Gläubiger-ID im Mandat: ${roh.glaeubigerId}`);
+
+  return {
+    ...mandat,
+    titel: dokument.name ?? dokument.title ?? mandat.titel,
+    kontoinhaber: roh.kontoinhaber,
+    kind: roh.kind || mandat.kind,
+    iban: ibanPruefung.gueltig ? ibanPruefung.iban : roh.iban,
+    bic: roh.bic,
+    mandatsId,
+    mandatsDatum: roh.mandatsDatum,
+    glaeubigerIdBeleg: roh.glaeubigerId,
+    quelle: { iban: 'feld', kontoinhaber: 'feld', mandatsId: 'feld', mandatsDatum: 'feld' },
+    fehler,
+    hinweise,
+    warnungen: [...fehler, ...hinweise],
+    uebernehmen: fehler.length === 0,
+    einwandfrei: fehler.length === 0 && hinweise.length === 0
+  };
 }
 
 /** Übernimmt die Werte der Formularerkennung in ein Mandat. */

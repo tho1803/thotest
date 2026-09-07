@@ -18,6 +18,7 @@ import { baueWindataCsv, dateiname } from './windata.js';
 import { baueSepaXml } from './sepa-xml.js';
 import { fuelleVorlage } from './vorlage.js';
 import * as bwsFormular from './bws-formular.js';
+import * as ioMandat from './paperless-mandat.js';
 
 const SPEICHER_SCHLUESSEL = 'bws-sepa-stammdaten';
 const ZUORDNUNG_SCHLUESSEL = 'bws-sepa-feldzuordnung';
@@ -154,7 +155,7 @@ async function vomHelferHolen() {
       return;
     }
 
-    mandate = extrahiereMandate(dokumente, { bwsFormular });
+    mandate = extrahiereMandate(dokumente, { bwsFormular, ioMandat });
     zeigeMandate();
     meldung('ladeMeldung', 'gut',
       `${mandate.length} Mandate aus ${dokumente.length} Dokumenten gelesen.`);
@@ -369,7 +370,7 @@ function jsonGeladen(ereignis) {
       const roh = String(leser.result);
       const dokumente = ausJsonExport(roh);
       const feldIndex = baueFeldIndex(felddefinitionenAusJson(roh));
-      mandate = extrahiereMandate(dokumente, { feldIndex, bwsFormular });
+      mandate = extrahiereMandate(dokumente, { feldIndex, bwsFormular, ioMandat });
       zeigeMandate();
       meldung('ladeMeldung', 'gut', `${mandate.length} Dokumente aus der Datei gelesen.`);
     } catch (fehler) {

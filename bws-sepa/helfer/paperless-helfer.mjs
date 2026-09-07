@@ -97,10 +97,37 @@ async function pdfText(daten) {
   return zeilen.filter(Boolean).join('\n');
 }
 
-/** Holt die Mandate und legt den PDF-Text als "content" bei — wie ein Scan. */
+/** Lädt eine Datei über die Ablage-Adresse einer Einreichung. */
+async function ladeBlob(url) {
+  const antwort = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}` },
+    redirect: 'follow',
+    signal: AbortSignal.timeout(60000)
+  });
+  if (!antwort.ok) throw new Error(`Ablage antwortet mit ${antwort.status}`);
+  return Buffer.from(await antwort.arrayBuffer());
+}
+
+/**
+ * Holt die Mandate und legt den PDF-Text als "content" bei — wie ein Scan.
+ *
+ * Entscheidend ist, welches PDF geholt wird: /documents/{id} liefert das
+ * Dokument ohne die Eingaben, also die leere Vorlage. Die ausgefüllten Werte
+ * stehen erst in der PDF-Datei der Einreichung. Nur die trägt IBAN, BIC,
+ * Kreditinstitut und Unterschriftsdatum.
+ */
 async function holeMandate(nurAbgeschlossene = true) {
-  const liste = await frageApi('/documents?limit=100');
-  const dokumente = liste.data ?? liste.documents ?? liste.results ?? [];
+  const [dokumentliste, einreichungsliste] = await Promise.all([
+    frageApi('/documents?limit=100'),
+    frageApi('/submissions?limit=100')
+  ]);
+
+  const dokumente = dokumentliste.data ?? dokumentliste.documents ?? dokumentliste.results ?? [];
+  const einreichungen = einreichungsliste.data ?? einreichungsliste.results ?? [];
+
+  // Einreichungen sind über submittable_id dem Dokument zugeordnet.
+  const jeDokument = new Map();
+  for (const e of einreichungen) jeDokument.set(e.submittable_id, e);
 
   const passend = nurAbgeschlossene
     ? dokumente.filter((d) => d.state === 'completed')
@@ -108,23 +135,45 @@ async function holeMandate(nurAbgeschlossene = true) {
 
   const ergebnis = [];
   for (const dokument of passend) {
+    const einreichung = jeDokument.get(dokument.id);
     let text = '';
-    try {
-      text = await pdfText(await frageApi(`/documents/${dokument.id}`, true));
-    } catch (fehler) {
-      text = '';
-      console.log(`  Dokument ${dokument.id}: PDF nicht lesbar (${fehler.message})`);
+    let herkunft = '';
+
+    // Reihenfolge nach Aussagekraft: die versiegelte Fassung ist die
+    // endgültige, die einfache enthält dieselben Eingaben, das Dokument
+    // selbst nur die Vorlage.
+    const quellen = [
+      ['Einreichung (versiegelt)', () => ladeBlob(einreichung?.sealed_pdf?.url)],
+      ['Einreichung', () => ladeBlob(einreichung?.pdf?.url)],
+      ['Dokument', () => frageApi(`/documents/${dokument.id}`, true)]
+    ];
+
+    for (const [name, holen] of quellen) {
+      try {
+        const roh = await holen();
+        const gelesen = await pdfText(roh);
+        // Eine Fassung mit Eingaben ist länger als die leere Vorlage.
+        if (gelesen.length > text.length) {
+          text = gelesen;
+          herkunft = name;
+        }
+        if (name !== 'Dokument') break;
+      } catch {
+        /* nächste Quelle */
+      }
     }
+
     ergebnis.push({
       id: dokument.id,
       title: dokument.name,
       state: dokument.state,
       created: dokument.completed_at ?? dokument.updated_at ?? dokument.created_at,
       vorlage: dokument.source_template?.name ?? '',
+      herkunft,
       content: text,
       custom_fields: []
     });
-    console.log(`  ${dokument.name} (${dokument.state}) — ${text.length} Zeichen Text`);
+    console.log(`  ${String(dokument.name).padEnd(20)} ${String(dokument.state).padEnd(12)} ${herkunft.padEnd(24)} ${text.length} Zeichen`);
   }
   return ergebnis;
 }
