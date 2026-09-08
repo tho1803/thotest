@@ -1,6 +1,6 @@
 # Der BWS-Server: eigene Maschine für die Vereins-Apps
 
-Stand: 3. September 2026. Der Server läuft, die Apps ziehen noch um.
+Stand: 5. September 2026. Der Server läuft, die DNS-Einträge stehen, die Apps ziehen noch um.
 
 ## Korrektur zur ersten Fassung
 
@@ -84,11 +84,13 @@ Zwei Domains, zwei Anbieter. Das zu verwechseln kostet eine halbe Stunde, deshal
 
 Die Vereinsdomain ist **`bws-ev.de` und liegt bei Ionos**, erkennbar an den Nameservern `ns1040.ui-dns.de` und deren Geschwistern. Dort zeigen `bws-ev.de` und `www` auf das Ionos-Webhosting mit der WordPress-Seite. **`thomas-perr.de` liegt bei GoDaddy** und hat mit den Vereins-Apps nichts zu tun.
 
-Die BWS-Apps bekommen deshalb A-Records bei **Ionos**: `sepa.bws-ev.de`, `uebungsleiter.bws-ev.de`, später `scan.bws-ev.de`, alle auf die Server-IP. Ausgeschrieben statt abgekürzt, weil Eltern und Übungsleitende diese Adressen lesen.
+Die BWS-Apps bekommen deshalb A-Records bei **Ionos**. Sie sind angelegt und zeigen auf den BWS-Server: `uebungsleiter.bws-ev.de`, `sepascan.bws-ev.de`, `sepa.bws-ev.de` und `bws-barbing.bws-ev.de`. Ausgeschrieben statt abgekürzt, weil Eltern und Übungsleitende diese Adressen lesen.
+
+Ein Aufruf über Port 80 beantwortet Traefik seitdem mit 503. Das ist der richtige Zwischenstand: Der Proxy nimmt die Adresse an und findet noch keine Anwendung dahinter. Über HTTPS kommt noch gar nichts, weil Coolify das Zertifikat erst beantragt, wenn die Domain in einer Anwendung eingetragen ist. Port 80 muss dafür offen bleiben, sonst scheitert die Prüfung von Let's Encrypt.
 
 Bei beiden Anbietern gehört ins Namensfeld **nur der Teil vor der Domain**, also `sepa` und nicht `sepa.bws-ev.de`. Der vollständige Name wird abgewiesen, weil der Anbieter die Domain selbst anhängt. Das war die Fehlermeldung, an der der erste Versuch scheiterte.
 
-**Auf der Vereinsdomain kein Wildcard.** Er schickt jeden Tippfehler und jede geratene Subdomain auf den Server. Drei einzelne Einträge sind einmal Arbeit und danach sauber. Eine Subdomain anzulegen berührt die Website nicht, dort kann nichts kaputtgehen.
+**Auf der Vereinsdomain kein Wildcard.** Er schickt jeden Tippfehler und jede geratene Subdomain auf den Server. Einzelne Einträge sind einmal Arbeit und danach sauber. Eine Subdomain anzulegen berührt die Website nicht, dort kann nichts kaputtgehen.
 
 Für die eigenen Prototypen ist ein Wildcard dagegen richtig: `*.lab.thomas-perr.de` bei GoDaddy, danach vergibt Coolify jede Adresse selbst und hat innerhalb einer Minute ein Zertifikat.
 
@@ -130,7 +132,9 @@ Die **SEPA-Mandat-App** ist laut ihrem Übergabedokument noch im Bau und hat noc
 
 Bleiben dürfen **`mobbit`**, **`choosy`**, **`timos`** und **`talentometer`**. Das sind IKOBE-Werkzeuge und damit freiberuflich, kein Vereinsgeschäft.
 
-Bei Ionos werden daraus `uebungsleiter.bws-ev.de`, `sepascan.bws-ev.de` und `sepa.bws-ev.de`. Die TTL vor dem Umzug auf den kleinsten Wert stellen, den Ionos anbietet, sonst wartest du beim Umschalten auf ablaufende Zwischenspeicher.
+Bei Ionos werden daraus `uebungsleiter.bws-ev.de`, `sepascan.bws-ev.de` und `sepa.bws-ev.de`; die Einträge stehen. Die TTL vor dem Umzug auf den kleinsten Wert stellen, den Ionos anbietet, sonst wartest du beim Umschalten auf ablaufende Zwischenspeicher.
+
+Dazu kommt **`bws-barbing.bws-ev.de`** für das Tierboard. Das ist kein Umzug: eine neue Anwendung, die von Anfang an auf dem Vereinsserver läuft. Der Eintrag steht ebenfalls.
 
 Die alten Adressen sterben nicht von selbst. Übungsleitende haben `uebungsleiter.thomas-perr.de` im Browser gespeichert, deshalb braucht es dort eine Weiterleitung oder einen Parallelbetrieb von einigen Wochen.
 
@@ -171,6 +175,8 @@ Zweitens den neuen Server bestellen. Hetzner Cloud, CX23, Ubuntu 24.04, Standort
 Drittens das Bootstrap-Skript laufen lassen. Es läuft einmal als root und richtet Benutzer, Firewall, Docker und auf Wunsch Coolify ein.
 
 Viertens die DNS-Einträge setzen, für die BWS-Apps bei Ionos unter `bws-ev.de`. Danach kannst du das erste Projekt deployen.
+
+Schritt zwei bis vier sind erledigt. Offen ist das Inventar des privaten Servers und der Umzug selbst.
 
 ## Offene Punkte
 
